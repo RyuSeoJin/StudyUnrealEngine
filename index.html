@@ -1,0 +1,3099 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE Codex — 언리얼 학습 플랫폼</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --bg-card: #1a2029;
+    --bg-deep: #0a0e14;
+    --border: #2d3441;
+    --border-bright: #3d4756;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --text-faint: #6e7681;
+    --accent: #58d6a0;
+    --accent-2: #4fb3ff;
+    --accent-3: #d99cff;
+    --amber: #f0b860;
+    --coral: #ff7b72;
+    --good: #3fb950;
+    --bad: #f85149;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(88,214,160,0.06), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(79,179,255,0.06), transparent 40%);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.15; pointer-events: none; z-index: 0;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+  /* ===== Header ===== */
+  header { padding: 36px 0 20px; }
+  .header-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 800; color: var(--bg);
+    font-size: 20px;
+  }
+  .brand-name {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+  }
+  .brand-name .grad {
+    background: linear-gradient(110deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-sub {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-faint); letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  /* ===== Nav tabs ===== */
+  .nav-tabs {
+    display: flex; gap: 4px; margin-top: 28px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    font-family: var(--sans);
+    font-size: 14px; font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active {
+    background: var(--bg-card);
+    color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .nav-tab .icon { font-size: 16px; }
+
+  /* 하위 네비 (블루프린트/C++ 안에서: 개념 정리 · 실습 · 퀴즈) */
+  .sub-nav {
+    display: flex; gap: 6px; margin-top: 14px;
+    border-bottom: 1px solid var(--border);
+    padding: 0 2px;
+    overflow-x: auto;
+  }
+  .sub-tab {
+    font-family: var(--sans);
+    font-size: 13.5px; font-weight: 600;
+    color: var(--text-dim);
+    background: transparent; border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 14px 12px;
+    margin-bottom: -1px;
+    cursor: pointer; white-space: nowrap;
+    transition: all 0.18s ease;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .sub-tab:hover { color: var(--text); }
+  .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .sub-tab .icon { font-size: 15px; }
+  .subject-heading {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-faint); margin-top: 22px;
+  }
+
+  .view { display: none; padding-top: 32px; animation: fade 0.35s ease; }
+  .view.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  h2.view-title {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .view-desc { color: var(--text-dim); margin-bottom: 32px; font-size: 15px; }
+
+  /* ===== Dashboard ===== */
+  .welcome-card {
+    background: linear-gradient(135deg, rgba(88,214,160,0.08), rgba(79,179,255,0.06));
+    border: 1px solid var(--border-bright);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .welcome-card h2 { font-size: 26px; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .welcome-card p { color: var(--text-dim); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::after {
+    content: ""; position: absolute; top: 0; right: 0;
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    opacity: 0.08;
+    transform: translate(20px, -20px);
+  }
+  .stat-card.s1::after { background: var(--accent); }
+  .stat-card.s2::after { background: var(--accent-2); }
+  .stat-card.s3::after { background: var(--accent-3); }
+  .stat-card.s4::after { background: var(--amber); }
+  .stat-icon {
+    font-size: 22px; margin-bottom: 10px;
+    display: inline-block;
+  }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 28px; font-weight: 800;
+    color: var(--text); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-value .total {
+    font-size: 16px; color: var(--text-faint); font-weight: 500;
+  }
+  .stat-label {
+    font-size: 13px; color: var(--text-dim);
+  }
+  .stat-bar {
+    height: 4px; background: var(--bg); border-radius: 2px;
+    margin-top: 12px; overflow: hidden;
+  }
+  .stat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .s1 .stat-bar-fill { background: var(--accent); }
+  .s2 .stat-bar-fill { background: var(--accent-2); }
+  .s3 .stat-bar-fill { background: var(--accent-3); }
+  .s4 .stat-bar-fill { background: var(--amber); }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .quick-action {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .quick-action:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .quick-action .qa-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--bg-soft);
+    display: grid; place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .quick-action .qa-text { flex: 1; }
+  .quick-action .qa-title { font-weight: 600; font-size: 14px; }
+  .quick-action .qa-sub { font-size: 12px; color: var(--text-faint); font-family: var(--mono); }
+  .quick-action .qa-arrow { color: var(--text-faint); transition: transform 0.2s ease; }
+  .quick-action:hover .qa-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ===== Concept cards ===== */
+  .cards { display: grid; gap: 14px; }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+  .card:hover { border-color: var(--border-bright); }
+  .card-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 22px;
+    cursor: pointer; user-select: none;
+  }
+  .card-tag {
+    font-family: var(--mono);
+    font-size: 11px; font-weight: 700;
+    padding: 4px 9px; border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .tag-1 { background: rgba(88,214,160,0.15); color: var(--accent); }
+  .tag-2 { background: rgba(79,179,255,0.15); color: var(--accent-2); }
+  .tag-3 { background: rgba(217,156,255,0.15); color: var(--accent-3); }
+  .tag-4 { background: rgba(240,184,96,0.15); color: var(--amber); }
+  .tag-5 { background: rgba(255,123,114,0.15); color: var(--coral); }
+  .card-title { font-size: 17px; font-weight: 600; flex: 1; }
+  .card-chevron { color: var(--text-faint); transition: transform 0.25s ease; font-size: 12px; }
+  .card.open .card-chevron { transform: rotate(90deg); }
+  .card-check {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-bright);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    color: transparent;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .card-check:hover { border-color: var(--accent); }
+  .card-check.done {
+    background: var(--accent); border-color: var(--accent); color: var(--bg);
+  }
+  .card-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+  .card.open .card-body { max-height: 2000px; }
+  .card-body-inner { padding: 0 22px 22px; color: var(--text-dim); font-size: 14.5px; }
+  .card-body-inner p { margin-bottom: 12px; }
+  .card-body-inner strong { color: var(--text); font-weight: 600; }
+  .card-body-inner code {
+    font-family: var(--mono);
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 12.5px; color: var(--accent);
+  }
+
+  /* ===== 코드 토글 (주석 포함 / 코드만) ===== */
+  .code-toggle { margin: 12px 0; }
+  .code-tabs {
+    display: flex; align-items: center; gap: 5px; margin-bottom: 6px;
+  }
+  .code-tabs-label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-faint); margin-right: 3px; letter-spacing: 0.5px;
+  }
+  .code-tab {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .code-tab:hover { color: var(--text); border-color: var(--border-bright); }
+  .code-tab.active {
+    background: rgba(79,179,255,0.12);
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+  }
+
+  /* ===== 개념 검색 바 ===== */
+  .concept-search {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .search-input-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 9px; padding: 0 14px; flex: 1; min-width: 180px;
+    transition: border-color 0.2s ease;
+  }
+  .search-input-wrap:focus-within { border-color: var(--accent-2); }
+  .search-icon { color: var(--text-faint); font-size: 14px; flex-shrink: 0; }
+  #concept-search-input {
+    background: transparent; border: none; outline: none;
+    color: var(--text); font-family: var(--sans); font-size: 14px;
+    padding: 10px 0; width: 100%;
+  }
+  #concept-search-input::placeholder { color: var(--text-faint); }
+  .btn-search {
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--accent-2); color: var(--bg);
+    transition: all 0.2s ease; white-space: nowrap;
+  }
+  .btn-search:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+  .btn-search:disabled {
+    background: var(--bg-soft); color: var(--text-faint);
+    border: 1px solid var(--border); cursor: not-allowed; opacity: 1;
+  }
+  .btn-search-reset {
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--coral); color: #fff;
+    transition: all 0.2s ease; white-space: nowrap;
+  }
+  .btn-search-reset:hover { opacity: 0.85; transform: translateY(-1px); }
+  .search-result-count {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text-dim); white-space: nowrap;
+  }
+  .search-highlight {
+    background: rgba(240,184,96,0.25);
+    color: var(--amber); border-radius: 2px; padding: 0 2px;
+  }
+  .concept-compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0;
+  }
+  .compare-col {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .compare-head {
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+  }
+  .compare-head.sealed { background: rgba(255,123,114,0.1); color: var(--coral); }
+  .compare-head.open   { background: rgba(88,214,160,0.1);  color: var(--accent); }
+  .compare-list { list-style: none; padding: 10px 12px; margin: 0; font-size: 13px; color: var(--text-dim); }
+  .compare-list li { padding: 3px 0 3px 14px; position: relative; }
+  .compare-list li::before { content: '·'; position: absolute; left: 4px; color: var(--text-faint); }
+
+  /* ===== 흐름 다이어그램 (직렬화 흐름 등) ===== */
+  .concept-flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    margin: 12px 0; padding: 12px 16px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .flow-step {
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: 5px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text); white-space: nowrap;
+  }
+  .flow-arrow { color: var(--text-faint); font-size: 14px; }
+  pre {
+    font-family: var(--mono);
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    margin: 12px 0;
+  }
+  pre.bp { border-left-color: var(--amber); }
+  pre.cpp { border-left-color: var(--accent-2); }
+  pre .cm { color: var(--text-faint); }
+  pre .kw { color: var(--accent-3); }
+  pre .mac { color: var(--amber); }
+  pre .str { color: var(--accent); }
+  pre .num { color: var(--coral); }
+
+  .code-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-top: 14px; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .code-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); }
+  .code-label.bp .dot { background: var(--amber); }
+
+  /* ===== Blueprint SVG canvas (실제 노드 그래프) ===== */
+  .bp-canvas {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+    background-image: radial-gradient(circle, #1b212c 1.1px, transparent 1.1px);
+    background-size: 22px 22px;
+    background-position: 12px 12px;
+  }
+  .bp-canvas svg { display: block; }
+  .bp-canvas text { font-family: var(--mono); }
+  .bp-canvas .node-title { font-weight: 700; font-size: 12px; fill: #ffffff; }
+  .bp-canvas .pin-label { font-size: 11px; fill: #b8c2cc; }
+  .bp-canvas .pin-value { font-size: 10.5px; fill: #e6edf3; }
+  .bp-legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    margin: 4px 0 0; padding: 10px 14px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-faint);
+  }
+  .bp-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .bp-legend .sw { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ===== Interactive Blueprint Editor ===== */
+  .bp-editor {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 12px 0;
+    overflow: hidden;
+    background: #07090d;
+  }
+  .bp-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--text-faint);
+    flex-wrap: wrap;
+  }
+  .bpe-btn {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-soft); color: var(--text-dim);
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .bpe-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .bpe-zoom {
+    font-weight: 700; color: var(--text-dim);
+    min-width: 42px; text-align: center;
+    padding: 4px 8px; border-radius: 5px;
+    background: var(--bg); border: 1px solid var(--border);
+  }
+  .bpe-hint { opacity: 0.75; }
+  @media (max-width: 560px) { .bpe-hint { display: none; } }
+
+  .bp-stage {
+    position: relative;
+    height: 460px;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    cursor: default;
+    background-color: #0a0d12;
+    background-image:
+      radial-gradient(circle, #20283400 1px, transparent 1px),
+      radial-gradient(circle, #1a212c 1.2px, transparent 1.2px),
+      linear-gradient(#10151d 1px, transparent 1px),
+      linear-gradient(90deg, #10151d 1px, transparent 1px);
+    background-size: 22px 22px, 22px 22px, 110px 110px, 110px 110px;
+  }
+  .bp-stage.panning { cursor: grabbing; }
+  .bp-world {
+    position: absolute; top: 0; left: 0;
+    width: 4000px; height: 3000px;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  .bp-wire-layer { position: absolute; inset: 0; z-index: 1; overflow: visible; }
+  .bp-wire-layer .wire, .bp-wire-layer .wire-glow { pointer-events: none; }
+  .bp-wire-layer .wire-hit { pointer-events: stroke; cursor: pointer; }
+  .bp-node-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+  .bp-marquee {
+    position: absolute; z-index: 5;
+    border: 1px solid var(--accent);
+    background: rgba(88,214,160,0.12);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .bp-node {
+    position: absolute;
+    min-width: 132px;
+    pointer-events: auto;
+    background: linear-gradient(180deg, #1b212b, #11151c);
+    border: 1px solid #05070a;
+    border-radius: 9px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .bp-node.selected {
+    box-shadow: 0 0 0 2px var(--amber), 0 6px 22px rgba(240,184,96,0.35);
+  }
+  .bp-node-header {
+    position: relative;
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px;
+    font-family: var(--mono); font-weight: 700; font-size: 12px;
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    cursor: grab;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .bp-node-header:active { cursor: grabbing; }
+  .bp-node-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 0 5px rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+  .bp-node.event .bp-node-header    { background: linear-gradient(180deg, #d24a3b, #7c1812); }
+  .bp-node.function .bp-node-header { background: linear-gradient(180deg, #3b82d6, #163a66); }
+  .bp-node.pure .bp-node-header,
+  .bp-node.variable .bp-node-header { background: linear-gradient(180deg, #27a055, #114f2a); }
+  .bp-node.flow .bp-node-header     { background: linear-gradient(180deg, #8a8a8a, #3a3a3a); }
+  .bp-node-rows { padding: 7px 0 9px; }
+  .bp-row {
+    position: relative;
+    display: flex; align-items: center; gap: 8px;
+    min-height: 26px;
+    padding: 2px 22px;
+    font-family: var(--mono); font-size: 11px;
+    color: #c2ccd6;
+  }
+  .bp-row.out { justify-content: flex-end; text-align: right; }
+  .bp-pin {
+    position: absolute; top: 50%;
+    width: 18px; height: 18px;
+    display: grid; place-items: center;
+    cursor: crosshair; z-index: 3;
+    touch-action: none;
+  }
+  .bp-row.in .bp-pin  { left: 1px;  transform: translateY(-50%); }
+  .bp-row.out .bp-pin { right: 1px; transform: translateY(-50%); }
+  .bp-pin .dot { pointer-events: none; transition: filter 0.15s ease, transform 0.15s ease; }
+  .bp-pin.pin-data .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--c); background: transparent; box-sizing: border-box;
+  }
+  .bp-pin.pin-data.connected .dot { background: var(--c); box-shadow: 0 0 6px var(--c); }
+  .bp-pin.pin-exec .dot {
+    width: 0; height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 11px solid var(--c);
+    filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
+  }
+  .bp-pin:hover .dot { filter: brightness(1.5) drop-shadow(0 0 4px var(--c)); transform: scale(1.15); }
+  .bp-pin.pin-target .dot { filter: brightness(1.6) drop-shadow(0 0 6px var(--c)); transform: scale(1.3); }
+  .bp-val {
+    font-family: var(--mono); font-size: 11px;
+    background: #07090d; border: 1px solid #3d4756;
+    color: #e6edf3; border-radius: 4px;
+    padding: 3px 7px; width: 116px; min-width: 0;
+  }
+  .bp-val:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,214,160,0.2); }
+  .bp-pin-label { white-space: nowrap; }
+  /* ===== Blueprint visual nodes (legacy) ===== */
+  .bp-graph {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+  .bp-flow {
+    display: flex; align-items: center; gap: 0;
+    flex-wrap: wrap;
+    min-width: min-content;
+  }
+  .bp-node {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    min-width: 140px;
+    font-family: var(--mono);
+    font-size: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .bp-node-head {
+    padding: 6px 10px;
+    color: white;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .bp-node-head.event { background: linear-gradient(90deg, #8b1a1a, #b52424); }
+  .bp-node-head.fn { background: linear-gradient(90deg, #1a4a7a, #2563b8); }
+  .bp-node-head.flow { background: linear-gradient(90deg, #555, #777); }
+  .bp-node-head.var { background: linear-gradient(90deg, #166534, #1f8c47); }
+  .bp-node-body {
+    padding: 8px 10px;
+    color: var(--text-dim);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .bp-node-body .pin {
+    display: flex; align-items: center; gap: 6px;
+    margin: 3px 0;
+  }
+  .bp-node-body .pin-dot {
+    width: 7px; height: 7px;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .bp-node-body .pin-dot.exec {
+    width: 0; height: 0;
+    background: transparent;
+    border-left: 7px solid var(--text);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+  .bp-node-body .pin-dot.data {
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .bp-arrow {
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 18px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+  .bp-steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 12px 0;
+  }
+  .bp-steps li {
+    counter-increment: step;
+    padding: 8px 0 8px 36px;
+    position: relative;
+    color: var(--text-dim);
+    font-size: 14px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .bp-steps li:last-child { border-bottom: none; }
+  .bp-steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 8px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: var(--mono); font-weight: 700; font-size: 12px;
+    display: grid; place-items: center;
+  }
+
+  /* ===== Example cards (BP & C++) ===== */
+  .example-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    transition: border-color 0.2s ease;
+  }
+  .example-card:hover { border-color: var(--border-bright); }
+  .example-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 22px;
+    cursor: pointer; user-select: none;
+  }
+  .difficulty {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    flex-shrink: 0;
+    min-width: 38px;
+  }
+  .example-info { flex: 1; }
+  .example-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .example-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.5px;
+  }
+  .example-body { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; }
+  .example-card.open .example-body { max-height: 4000px; }
+  .example-body-inner {
+    padding: 0 22px 24px;
+    border-top: 1px solid var(--border);
+    margin-top: 0;
+  }
+  .desc-block {
+    background: var(--bg-soft);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 14.5px;
+    color: var(--text-dim);
+  }
+  .desc-block strong { color: var(--text); }
+  .think-prompt {
+    background: rgba(240,184,96,0.08);
+    border: 1px dashed var(--amber);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .think-prompt strong { color: var(--amber); }
+  .reveal-btn {
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    padding: 11px 22px;
+    border-radius: 8px;
+    border: 1px dashed var(--accent);
+    background: rgba(88,214,160,0.05);
+    color: var(--accent);
+    cursor: pointer;
+    margin: 14px 0;
+    transition: all 0.2s ease;
+  }
+  .reveal-btn:hover { background: rgba(88,214,160,0.12); }
+  .solution { display: none; animation: fade 0.4s ease; }
+  .solution.show { display: block; }
+  .solution h4 {
+    font-size: 14px; margin-top: 18px; margin-bottom: 8px;
+    color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .solution h4::before { content: "▸"; color: var(--accent); }
+  .solution p { color: var(--text-dim); font-size: 14px; margin-bottom: 10px; }
+  .solution code {
+    font-family: var(--mono);
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 12.5px; color: var(--accent);
+  }
+  .mark-row {
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .mark-btn {
+    font-family: var(--mono);
+    font-size: 12px; font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mark-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mark-btn.done {
+    background: var(--accent); color: var(--bg); border-color: var(--accent);
+  }
+  .example-card .head-check {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-bright);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    color: transparent;
+    font-size: 13px; font-weight: 800;
+    transition: all 0.2s ease;
+  }
+  .example-card .head-check.done {
+    background: var(--accent); border-color: var(--accent); color: var(--bg);
+  }
+  .example-chevron { color: var(--text-faint); font-size: 12px; transition: transform 0.25s ease; }
+  .example-card.open .example-chevron { transform: rotate(90deg); }
+
+  /* category filter */
+  .cat-filter {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .cat-chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .cat-chip:hover { border-color: var(--border-bright); color: var(--text); }
+  .cat-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  /* ===== Quiz (unchanged) ===== */
+  .quiz-intro {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    text-align: center;
+  }
+  .quiz-intro h3 { font-size: 22px; margin-bottom: 10px; }
+  .quiz-intro p { color: var(--text-dim); margin-bottom: 20px; }
+
+  .btn {
+    font-family: var(--mono);
+    font-weight: 700; font-size: 14px;
+    padding: 12px 28px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(88,214,160,0.3); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn.ghost { background: var(--bg-soft); color: var(--text); border: 1px solid var(--border-bright); }
+  .btn.ghost:hover { box-shadow: none; border-color: var(--accent); }
+
+  .progress-bar {
+    height: 6px; background: var(--bg-soft);
+    border-radius: 3px; overflow: hidden;
+    margin-bottom: 8px; border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    width: 0%; transition: width 0.4s ease;
+  }
+  .progress-text {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-faint); text-align: right;
+    margin-bottom: 20px;
+  }
+  .question-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .q-type {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .q-text { font-size: 18px; font-weight: 600; margin-bottom: 8px; line-height: 1.45; }
+  .q-code {
+    font-family: var(--mono);
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text);
+    margin: 16px 0;
+    overflow-x: auto;
+    line-height: 1.75;
+  }
+  .q-code .mac { color: var(--amber); }
+  .q-code .kw { color: var(--accent-3); }
+  .q-code .cm { color: var(--text-faint); }
+
+  .options { display: grid; gap: 10px; margin-top: 20px; }
+  .opt {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-size: 14.5px;
+  }
+  .opt:hover:not(.locked) { border-color: var(--accent); transform: translateX(3px); }
+  .opt-key {
+    font-family: var(--mono); font-weight: 700; font-size: 12px;
+    width: 24px; height: 24px;
+    display: grid; place-items: center;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .opt.correct { border-color: var(--good); background: rgba(63,185,80,0.12); }
+  .opt.correct .opt-key { background: var(--good); color: var(--bg); border-color: var(--good); }
+  .opt.wrong { border-color: var(--bad); background: rgba(248,81,73,0.12); }
+  .opt.wrong .opt-key { background: var(--bad); color: var(--bg); border-color: var(--bad); }
+  .opt.locked { cursor: default; }
+  .opt.dim { opacity: 0.5; }
+
+  .explain {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2);
+    font-size: 14px; color: var(--text-dim);
+    display: none;
+  }
+  .explain.show { display: block; animation: fade 0.3s ease; }
+  .explain strong { color: var(--text); }
+
+  .q-nav { display: flex; justify-content: space-between; margin-top: 24px; gap: 12px; }
+
+  .result {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 44px 28px;
+    text-align: center;
+  }
+  .score-ring { width: 150px; height: 150px; margin: 0 auto 22px; position: relative; }
+  .score-num {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--mono);
+    font-size: 38px; font-weight: 800;
+  }
+  .result h3 { font-size: 24px; margin-bottom: 8px; }
+  .result p { color: var(--text-dim); margin-bottom: 26px; }
+  .result .btn { margin: 0 6px; }
+
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  footer a { color: var(--text-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <div class="brand-icon">UE</div>
+        <div>
+          <div class="brand-name">UE <span class="grad">Codex</span></div>
+          <div class="brand-sub">// Unreal Engine Learning Platform</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-subject="dashboard"><span class="icon">🏠</span>대시보드</button>
+      <button class="nav-tab" data-subject="bp"><span class="icon">🎨</span>블루프린트</button>
+      <button class="nav-tab" data-subject="cpp"><span class="icon">💻</span>C++</button>
+    </div>
+    <div class="sub-nav" id="sub-nav" style="display:none;">
+      <button class="sub-tab active" data-mode="concepts"><span class="icon">📚</span>개념 정리</button>
+      <button class="sub-tab" data-mode="practice"><span class="icon">🛠️</span>실습</button>
+      <button class="sub-tab" data-mode="quiz"><span class="icon">✏️</span>퀴즈</button>
+    </div>
+  </header>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div class="view active" id="view-dashboard">
+    <div class="welcome-card">
+      <h2 id="welcome-title">언리얼 학습을 이어가볼까요</h2>
+      <p id="welcome-msg">개념을 복습하고, 블루프린트와 C++ 예제로 손에 익히세요.</p>
+    </div>
+
+    <div class="section-label">학습 진행률</div>
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="section-label">바로 시작하기</div>
+    <div class="quick-actions">
+      <div class="quick-action" data-go-subject="bp">
+        <div class="qa-icon">🎨</div>
+        <div class="qa-text">
+          <div class="qa-title">블루프린트</div>
+          <div class="qa-sub">개념 정리 · 실습 · 퀴즈</div>
+        </div>
+        <div class="qa-arrow">→</div>
+      </div>
+      <div class="quick-action" data-go-subject="cpp">
+        <div class="qa-icon">💻</div>
+        <div class="qa-text">
+          <div class="qa-title">C++</div>
+          <div class="qa-sub">개념 정리 · 실습 · 퀴즈</div>
+        </div>
+        <div class="qa-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONCEPTS ============ -->
+  <div class="view" id="view-concepts">
+    <h2 class="view-title" id="concepts-title">개념 정리</h2>
+    <p class="view-desc" id="concepts-desc">핵심 개념을 카드로 정리했어요. 펼쳐서 읽고, 다 본 건 체크해두세요.</p>
+    <div class="concept-search" id="concept-search">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="concept-search-input" placeholder="개념 검색... (Enter 또는 검색 버튼)" autocomplete="off" />
+      </div>
+      <button class="btn-search" id="btn-search" disabled>검색</button>
+      <button class="btn-search-reset" id="btn-search-reset" style="display:none">검색 초기화</button>
+      <span class="search-result-count" id="search-result-count"></span>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <!-- ============ BLUEPRINT ============ -->
+  <div class="view" id="view-blueprint">
+    <h2 class="view-title">블루프린트 예제</h2>
+    <p class="view-desc">"이런 기능을 만들고 싶을 때 어떻게 하지?"에 대한 노드 풀이입니다. 먼저 머릿속으로 생각해본 뒤 정답을 확인하세요.</p>
+    <div class="cat-filter" id="bp-filter"></div>
+    <div id="bp-list"></div>
+  </div>
+
+  <!-- ============ C++ ============ -->
+  <div class="view" id="view-cpp">
+    <h2 class="view-title">C++ 예제</h2>
+    <p class="view-desc">같은 기능을 C++ 코드로 구현하는 방법입니다. 매크로와 클래스 구조에 익숙해지세요.</p>
+    <div class="cat-filter" id="cpp-filter"></div>
+    <div id="cpp-list"></div>
+  </div>
+
+  <!-- ============ QUIZ ============ -->
+  <div class="view" id="view-quiz">
+    <h2 class="view-title" id="quiz-title">퀴즈</h2>
+    <p class="view-desc">객관식과 코드 보고 맞히기가 섞여 있어요. 한 문제씩 풀고 바로 해설을 확인하세요.</p>
+
+    <div id="quiz-intro" class="quiz-intro">
+      <h3>준비되셨나요?</h3>
+      <p>총 10문제. 답을 고르면 바로 채점되고 해설이 표시됩니다.</p>
+      <button class="btn" id="start-btn">퀴즈 시작 →</button>
+    </div>
+
+    <div id="quiz-running" style="display:none;">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text" id="progress-text"></div>
+      <div class="question-card" id="question-card"></div>
+      <div class="q-nav">
+        <button class="btn ghost" id="prev-btn">← 이전</button>
+        <button class="btn" id="next-btn" disabled>다음 →</button>
+      </div>
+    </div>
+
+    <div id="quiz-result" style="display:none;"></div>
+  </div>
+
+  <footer>
+    Built for self-study · <a href="https://github.com/RyuSeoJin/StudyUnrealEngine" target="_blank">github.com/RyuSeoJin/StudyUnrealEngine</a>
+  </footer>
+</div>
+
+<script>
+/* =============================================================================
+   📚 DATA — 새 예제·개념을 추가할 땐 이 부분만 수정하면 됩니다.
+   ============================================================================= */
+
+/* ---- 개념 카드 ----
+   cat: '공통' | '블루프린트' | 'C++'  (개념 정리 탭에서 필터로 구분)
+*/
+const concepts = [
+  {
+    id: 'c-01', cat: '공통', tag: '공통', tagClass: 'tag-1',
+    title: "블루프린트 vs C++ — 무엇을 먼저?",
+    body: `
+      <p>입문자는 <strong>블루프린트를 먼저, C++을 그 다음</strong>으로. C++부터 파면 'C++ 문법'과 '언리얼 프레임워크'를 동시에 만나 막힌 곳이 어디인지조차 헷갈립니다.</p>
+      <p>블루프린트는 비주얼 스크립팅이라 문법 부담 없이 엔진의 핵심 개념(액터 스폰, 충돌 감지, 이벤트 반응)을 익히게 해줍니다. 중요한 건 <strong>블루프린트 노드 하나하나가 거의 그대로 C++ 함수에 대응</strong>한다는 점.</p>
+      <p>실무 표준은 <strong>하이브리드</strong>입니다 — 무거운 로직·성능 중요한 부분은 C++, 디자이너가 자주 건드리는 수치·연출은 블루프린트.</p>
+    `
+  },
+
+  {
+    id: 'bp-c-01', cat: '블루프린트', tag: 'BP', tagClass: 'tag-4',
+    title: "블루프린트란? — 비주얼 스크립팅",
+    body: `
+      <p>블루프린트는 <strong>코드를 글자로 쓰는 대신 노드를 연결해서 로직을 만드는</strong> 비주얼 스크립팅입니다. 작업은 주로 <strong>이벤트 그래프(Event Graph)</strong>에서 하고, 수정 후엔 좌상단 <strong>Compile(컴파일)</strong> 버튼을 눌러 반영합니다.</p>
+      <p>문법 오타·세미콜론 걱정이 없고, 연결만 맞으면 동작하기 때문에 엔진의 흐름을 익히기에 가장 좋습니다. 노드 하나하나가 사실상 <strong>C++ 함수 하나</strong>에 대응하므로, 여기서 익힌 감각이 나중에 C++로 거의 그대로 이어집니다.</p>
+      <p>이 사이트의 <strong>블루프린트 탭</strong>에서 실제 노드를 끌어 연결해보며 익힐 수 있어요.</p>
+    `
+  },
+
+  {
+    id: 'bp-c-02', cat: '블루프린트', tag: 'BP', tagClass: 'tag-4',
+    title: "노드 · 핀 · 와이어",
+    body: `
+      <p><strong>노드</strong>는 하나의 동작·값을 나타내는 상자입니다. 헤더 색으로 종류를 구분해요 — <strong>빨강=이벤트</strong>, <strong>파랑=함수</strong>, <strong>초록=변수</strong>.</p>
+      <p><strong>핀</strong>은 노드 양옆의 연결 지점입니다. <strong>실행 핀(흰 삼각형 ▷)</strong>은 "다음에 무엇을 실행할지"를, <strong>데이터 핀(색 원)</strong>은 "값"을 나릅니다. 원의 색이 곧 타입이에요 — 초록=Float, 분홍=String, 파랑=Object.</p>
+      <p><strong>와이어</strong>는 핀과 핀을 잇는 선입니다. 흰 와이어는 실행 흐름, 색 와이어는 데이터의 흐름. <strong>출력 핀 → 입력 핀</strong> 방향으로 연결합니다.</p>
+    `
+  },
+
+  {
+    id: 'bp-c-03', cat: '블루프린트', tag: 'BP', tagClass: 'tag-4',
+    title: "이벤트 그래프와 실행 흐름",
+    body: `
+      <p>블루프린트의 실행은 항상 <strong>이벤트</strong>에서 시작합니다. 대표적으로 <code>Event BeginPlay</code>(시작 시 1회), <code>Event Tick</code>(매 프레임), 그리고 키 입력 이벤트가 있어요.</p>
+      <p>이벤트의 흰 실행 핀에서 나온 와이어를 따라 <strong>왼쪽에서 오른쪽으로</strong> 순서대로 노드가 실행됩니다. "시작되면 → 메시지 출력 → 사운드 재생" 같은 식이죠.</p>
+      <p>규칙 하나: <strong>입력 실행 핀은 와이어를 하나만</strong> 받을 수 있고(한 시점에 한 흐름), <strong>출력 실행 핀은 여러 갈래</strong>로 뻗을 수 있습니다.</p>
+    `
+  },
+
+  {
+    id: 'bp-c-04', cat: '블루프린트', tag: 'BP', tagClass: 'tag-4',
+    title: "변수와 Get / Set 노드",
+    body: `
+      <p>변수는 좌측 <strong>My Blueprint 패널</strong>의 Variables에서 "+"로 만들고 타입(Float·Bool·Actor 등)을 정합니다. 그래프로 끌어다 놓으면 두 가지 노드로 나타나요.</p>
+      <p><strong>Get 노드</strong>는 값을 읽어옵니다(출력 핀만, 실행 핀 없음). <strong>Set 노드</strong>는 값을 새로 넣습니다(실행 핀이 있어 흐름 중간에 끼움).</p>
+      <p>변수 설정의 <strong>Instance Editable</strong>을 켜면 레벨에 배치한 개체의 디테일 패널에서 값을 직접 조정할 수 있어요. 이건 C++의 <code>UPROPERTY(EditAnywhere)</code>와 똑같은 역할입니다.</p>
+    `
+  },
+
+  {
+    id: 'c-07', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "클래스 구조와 접근 지정자",
+    body: `
+      <p>클래스 멤버(변수·함수)에는 <strong>누가 접근할 수 있는지</strong>를 지정자로 제한합니다. 처음 보는 코드라도 아래 주석을 따라 읽으면 전체 구조가 보입니다.</p>
+      <pre><span class="cm">// ┌─ 'class' : C++에서 클래스를 만드는 키워드
+// │   AMyActor : 클래스 이름. 'A' = Actor 계열(월드에 배치 가능)
+// │   : public AActor : 콜론 = 상속 선언. "AActor를 부모로 삼겠다"
+// │     'public' = 부모의 public·protected 멤버를 그대로 유지
+// │     'AActor' = 언리얼의 모든 액터 조상 클래스
+// └──────────────────────────────────────────────────────</span>
+<span class="kw">class</span> AMyActor : <span class="kw">public</span> AActor {
+
+  <span class="mac">GENERATED_BODY()</span>  <span class="cm">// [UE 매크로] 리플렉션·직렬화 코드를 자동 삽입
+                    // 없으면 UPROPERTY/UFUNCTION이 동작 안 함
+                    // 항상 클래스 안 첫 번째 줄에 위치</span>
+
+<span class="kw">public:</span>             <span class="cm">// ══ 공개 구역 ══════════════════════════════
+                    // 외부 누구나 접근 가능 (다른 클래스, 블루프린트 등)</span>
+
+  AMyActor();       <span class="cm">// 생성자: 클래스 이름과 동일, 반환형 없음
+                    // 에디터에서 액터를 배치하는 순간 자동으로 1회 호출</span>
+
+  <span class="kw">void</span> Shoot();     <span class="cm">// 함수 선언. void = 반환값 없음
+                    // public이므로 블루프린트·다른 클래스 어디서든 호출 가능
+                    // 선언만 있음 — 실제 동작 코드는 .cpp에 작성</span>
+
+<span class="kw">protected:</span>          <span class="cm">// ══ 보호 구역 ══════════════════════════════
+                    // 이 클래스 + 이 클래스를 상속한 자식만 접근 가능
+                    // 외부에서는 접근 불가</span>
+
+  <span class="kw">virtual void</span> BeginPlay() <span class="kw">override</span>;
+  <span class="cm">// virtual : "자식 클래스가 이 함수를 재정의해도 된다"는 허가
+  // BeginPlay() : 게임 시작 시 1회 호출. AActor에 virtual로 선언되어 있음
+  // override : "나는 부모의 virtual 함수를 재정의함"을 컴파일러에 명시
+  //             오탈자로 함수 이름을 잘못 적으면 컴파일 오류 → 안전장치</span>
+
+  <span class="kw">float</span> Health = 100.f;
+  <span class="cm">// float : 소수점 있는 실수 타입
+  // 100.f : 100.0 실수 값 (뒤의 f = float 리터럴)
+  // protected이므로 자식 클래스(예: 보스 몬스터)도 읽고 수정 가능</span>
+
+<span class="kw">private:</span>            <span class="cm">// ══ 비공개 구역 ════════════════════════════
+                    // 이 클래스 내부에서만 접근 가능
+                    // 외부 / 자식 클래스 모두 접근 불가</span>
+
+  <span class="kw">int32</span> AmmoCount;  <span class="cm">// int32 : 언리얼의 32비트 정수 (일반 int보다 플랫폼 안정적)
+                    // 외부에서 직접 접근 불가 → Getter/Setter 함수를 통해야 함</span>
+};                  <span class="cm">// 클래스 선언 끝. 세미콜론(;) 반드시 필요!</span></pre>
+      <p><code>UPROPERTY</code>·<code>UFUNCTION</code>은 <code>public:</code> 또는 <code>protected:</code> 아래에 두는 게 일반적이에요. <code>private:</code>에 두면 블루프린트에서 보이지 않습니다.</p>
+    `
+  },
+
+  {
+    id: 'c-03', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: ".h 와 .cpp — 왜 쌍으로 다닐까",
+    body: `
+      <p><code>.h</code>는 <strong>"무엇이 있는지" 선언만</strong> 적는 파일(메뉴판), <code>.cpp</code>는 <strong>"어떻게 동작하는지" 구현</strong>을 적는 파일(레시피)입니다.</p>
+      <pre><span class="cm">// ═══════════════════════════════════════
+// 📄 Weapon.h — 메뉴판 (선언 파일)
+// ═══════════════════════════════════════</span>
+#pragma once        <span class="cm">// 이 파일이 여러 번 include되어도 한 번만 처리</span>
+
+<span class="kw">class</span> Weapon {      <span class="cm">// Weapon 클래스 선언 시작</span>
+
+  <span class="kw">void</span> Fire();      <span class="cm">// "Fire라는 함수가 있다"고 이름·인자·반환형만 선언
+                    // 실제 코드(동작)는 여기 없음 → .cpp에 따로 작성</span>
+};                  <span class="cm">// 세미콜론 필수!</span>
+
+<span class="cm">// ═══════════════════════════════════════
+// 📄 Weapon.cpp — 레시피 (구현 파일)
+// ═══════════════════════════════════════</span>
+#include "Weapon.h"     <span class="cm">// 자기 헤더를 첫 번째로 include
+                         // .cpp가 Weapon 클래스의 선언을 알아야
+                         // 그 함수를 구현할 수 있음</span>
+
+<span class="kw">void</span> Weapon::Fire() <span class="cm">// Weapon 클래스의 Fire 함수 구현
+                    // '::' = 범위 연산자. "Weapon 클래스 안의 Fire"
+                    // .h의 선언 이름과 정확히 일치해야 함</span>
+{
+  <span class="cm">// 실제 총 발사 로직을 여기에 작성</span>
+}</pre>
+      <p><strong>왜 나눌까?</strong> ① 다른 코드는 .h(메뉴판)만 알면 됨 — 구현을 몰라도 사용 가능 ② 구현만 고치면 그 .cpp만 다시 컴파일 → 빌드 속도 향상 ③ 설계(선언)와 동작(구현)이 분리되어 코드가 깔끔해짐.</p>
+    `
+  },
+
+  {
+    id: 'c-06', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "#pragma once — 헤더 가드",
+    body: `
+      <p>.h 파일을 열면 항상 첫 줄에 있습니다. 아래 실제 UE 헤더 파일 구조와 함께 각 요소가 왜 있는지 확인하세요.</p>
+      <pre><span class="cm">// ┌─ 📄 MyWeapon.h ─────────────────────────────────────────</span>
+
+#pragma once              <span class="cm">// ① 반드시 파일 맨 첫 줄!
+                          //    "이 파일을 컴파일 시 한 번만 처리해라"
+                          //    A.cpp → Weapon.h include
+                          //    B.h   → Weapon.h include
+                          //    A.cpp → B.h include  ← Weapon.h가 2번 처리될 수 있음
+                          //    #pragma once가 중복을 자동으로 차단</span>
+
+#include "CoreMinimal.h"          <span class="cm">// ② 언리얼 기본 타입(FString, FVector 등) 제공
+                                  //    거의 모든 UE 파일에 포함</span>
+#include "GameFramework/Actor.h"  <span class="cm">// ③ 부모 클래스(AActor) 사용하려면 필요
+                                  //    상속하는 클래스의 헤더는 반드시 include</span>
+#include "MyWeapon.generated.h"   <span class="cm">// ④ 반드시 마지막 #include!
+                                  //    언리얼 헤더 툴(UHT)이 자동으로 만드는 파일
+                                  //    UCLASS / UPROPERTY / UFUNCTION 동작에 필수</span>
+
+<span class="mac">UCLASS()</span>                   <span class="cm">// ⑤ 이 클래스를 언리얼 리플렉션 시스템에 등록</span>
+<span class="kw">class</span> MYGAME_API             <span class="cm">// MYGAME_API : DLL 내보내기 지정자
+                            //             UE 빌드 시스템이 자동 생성
+                            //             다른 모듈에서 이 클래스를 쓸 수 있게 함</span>
+    AMyWeapon : <span class="kw">public</span> AActor {
+  <span class="mac">GENERATED_BODY()</span>          <span class="cm">// ⑥ 리플렉션·직렬화 코드 자동 삽입 (항상 클래스 첫 줄)</span>
+  <span class="cm">// ... 멤버 선언 ...</span>
+};</pre>
+      <p>순서 요약: <strong>#pragma once → 엔진 includes → 자기.generated.h(마지막) → UCLASS() → class → GENERATED_BODY()</strong>. 이 순서를 어기면 컴파일 오류가 납니다.</p>
+    `
+  },
+
+  {
+    id: 'c-13', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: ".h 와 .cpp — 무엇을 어디에 쓸까",
+    body: `
+      <p><strong>.h는 설계도, .cpp는 공장</strong>이라고 생각하세요. 아래에서 같은 클래스를 두 파일에 나눈 실제 패턴을 주석과 함께 읽어보세요.</p>
+      <pre><span class="cm">// ════════════════════════════════════════════════
+// 📄 MyActor.h — 선언 파일 ("무엇이 있는지"만)
+// ════════════════════════════════════════════════</span>
+#pragma once                      <span class="cm">// 중복 include 방지</span>
+#include "CoreMinimal.h"          <span class="cm">// UE 기본 타입</span>
+#include "GameFramework/Actor.h"  <span class="cm">// 부모 클래스 AActor</span>
+#include "MyActor.generated.h"    <span class="cm">// ← 반드시 마지막 include</span>
+
+<span class="mac">UCLASS()</span>
+<span class="kw">class</span> MYGAME_API AMyActor : <span class="kw">public</span> AActor {
+  <span class="mac">GENERATED_BODY()</span>
+<span class="kw">public:</span>
+  AMyActor();                     <span class="cm">// .h : 생성자 이름·인자만 선언</span>
+
+  <span class="mac">UPROPERTY(EditAnywhere)</span>         <span class="cm">// 에디터 디테일 패널에 노출</span>
+  <span class="kw">float</span> Health = 100.f;           <span class="cm">// .h : 변수 선언 + 기본값 설정 가능</span>
+
+  <span class="mac">UFUNCTION(BlueprintCallable)</span>     <span class="cm">// 블루프린트 노드로 노출</span>
+  <span class="kw">void</span> TakeDamage(<span class="kw">float</span> Dmg);     <span class="cm">// .h : 함수 이름·인자·반환형만</span>
+
+<span class="kw">protected:</span>
+  <span class="kw">virtual void</span> BeginPlay() <span class="kw">override</span>;  <span class="cm">// .h : 재정의 의사 표명</span>
+};</pre>
+      <pre><span class="cm">// ════════════════════════════════════════════════
+// 📄 MyActor.cpp — 구현 파일 ("어떻게 동작하는지")
+// ════════════════════════════════════════════════</span>
+#include "MyActor.h"              <span class="cm">// ← 자기 헤더 가장 첫 번째로!
+                                  //    .cpp가 클래스 선언을 알아야 구현 가능</span>
+
+AMyActor::AMyActor()              <span class="cm">// '::' = 범위 연산자. "AMyActor 클래스의 생성자"
+                                  //  .h에서 선언한 생성자를 여기서 구현</span>
+{
+  PrimaryActorTick.bCanEverTick = <span class="kw">false</span>;  <span class="cm">// Tick 비활성 (기본값)</span>
+}
+
+<span class="kw">void</span> AMyActor::BeginPlay()        <span class="cm">// .h에서 선언한 BeginPlay 구현
+                                  //  "AMyActor 클래스의 BeginPlay 함수"</span>
+{
+  Super::BeginPlay();             <span class="cm">// 부모(AActor)의 BeginPlay 먼저 실행
+                                  // 빠뜨리면 초기화 누락 버그 발생 → 항상 첫 줄!</span>
+  UE_LOG(LogTemp, Warning, TEXT(<span class="str">"시작!"</span>));  <span class="cm">// 콘솔에 로그 출력</span>
+}
+
+<span class="kw">void</span> AMyActor::TakeDamage(<span class="kw">float</span> Dmg)  <span class="cm">// .h에서 선언한 TakeDamage 구현</span>
+{
+  Health -= Dmg;                  <span class="cm">// Health에서 Dmg만큼 감소</span>
+  <span class="kw">if</span> (Health &lt;= 0.f) Destroy();  <span class="cm">// 체력 0 이하면 액터 삭제</span>
+}</pre>
+      <p><strong>규칙 요약</strong> — .h에는 <em>"있다"(선언·UPROPERTY·UFUNCTION)</em>, .cpp에는 <em>"어떻게"(함수 본문·로직)</em>. .cpp에서만 쓰는 헤더는 .cpp에만 include해요.</p>
+    `
+  },
+
+  {
+    id: 'c-02', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "#include — 다른 파일 가져오기",
+    body: `
+      <p>컴파일러는 코드를 <strong>위에서 아래로</strong> 읽습니다. 사용하기 전에 먼저 <code>#include</code>로 "이런 게 있다"고 알려줘야 해요.</p>
+      <pre>#include &lt;iostream&gt;
+<span class="cm">// &lt; &gt; 꺾쇠 = 엔진·C++ 표준 라이브러리가 제공하는 파일
+//           탐색 순서: 시스템 경로 → 엔진 경로
+//           예) &lt;iostream&gt;, &lt;vector&gt;, &lt;memory&gt;</span>
+
+#include "Items/Weapon.h"
+<span class="cm">// " " 큰따옴표 = 내 프로젝트 안의 파일
+//               탐색 순서: 현재 파일 위치 → 프로젝트 경로
+//               "Items/Weapon.h" = Items 폴더 안의 Weapon.h
+//
+// 결과: 이 줄 아래부터 Weapon 클래스를 사용할 수 있게 됨
+//       include 없이 Weapon을 쓰면 "Weapon이 뭔지 모름" 컴파일 오류</span>
+
+<span class="cm">// UE에서 자주 보이는 include 패턴
+// .h 상단</span>
+#include "CoreMinimal.h"          <span class="cm">// UE 기본 타입 (FString, FVector 등)</span>
+#include "GameFramework/Actor.h"  <span class="cm">// 부모 클래스 include — 상속 시 필수</span>
+#include "MyWeapon.generated.h"   <span class="cm">// UHT 자동 생성 파일 — 항상 마지막</span></pre>
+      <p>꺾쇠 <code>&lt; &gt;</code>는 시스템·엔진 파일, 큰따옴표 <code>" "</code>는 내 프로젝트 파일. .h에서는 꼭 필요한 것만 include하고, 나머지는 전방 선언으로 대체하면 빌드가 빨라집니다.</p>
+    `
+  },
+
+  {
+    id: 'c-14', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "전방 선언(Forward Declaration) — #include 줄이기",
+    body: `
+      <p>.h에서 다른 클래스를 <strong>포인터(<code>*</code>)로만 사용</strong>할 땐, 헤더 전체를 include하지 않고 <strong>"이런 이름의 클래스가 있다"고만 알려주는</strong> 전방 선언으로 충분합니다.</p>
+      <pre><span class="cm">// ════════════════════════════════════
+// 📄 MyActor.h — 전방 선언 사용
+// ════════════════════════════════════</span>
+#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+<span class="cm">// ↑ 위는 반드시 필요한 것만 include</span>
+
+<span class="kw">class</span> AEnemy;              <span class="cm">// 전방 선언: "AEnemy라는 클래스가 어딘가에 있다"
+                           // include 없이 이름만 알림
+                           // → 포인터 타입(AEnemy*)으로 선언할 수 있게 됨</span>
+<span class="kw">class</span> UWeaponComponent;    <span class="cm">// UWeaponComponent도 동일</span>
+
+#include "MyActor.generated.h"   <span class="cm">// generated.h는 항상 마지막</span>
+
+<span class="mac">UCLASS()</span>
+<span class="kw">class</span> MYGAME_API AMyActor : <span class="kw">public</span> AActor {
+  <span class="mac">GENERATED_BODY()</span>
+<span class="kw">public:</span>
+  <span class="mac">UPROPERTY()</span>
+  AEnemy* Target;            <span class="cm">// AEnemy*  = AEnemy를 가리키는 포인터
+                             // 포인터는 "주소(크기 고정)"만 저장하므로
+                             // 클래스 전체 내용을 몰라도 선언 가능 → 전방 선언 OK</span>
+
+  <span class="mac">UPROPERTY()</span>
+  UWeaponComponent* Weapon;  <span class="cm">// 동일: 포인터니까 전방 선언으로 충분</span>
+};</pre>
+      <pre><span class="cm">// ════════════════════════════════════
+// 📄 MyActor.cpp — 실제 사용 시 full include
+// ════════════════════════════════════</span>
+#include "MyActor.h"
+#include "Enemy/AEnemy.h"               <span class="cm">// 여기서 실제로 멤버를 호출하므로
+                                        // 전체 클래스 정의가 필요 → full include</span>
+#include "Components/WeaponComponent.h" <span class="cm">// 동일</span>
+
+<span class="kw">void</span> AMyActor::AttackTarget() {
+  <span class="kw">if</span> (Target)                  <span class="cm">// null 체크 (항상!)</span>
+    Target->TakeDamage(10.f); <span class="cm">// '->' = 포인터로 멤버 접근
+                               // TakeDamage는 AEnemy 클래스의 멤버
+                               // .cpp에서 full include 했으므로 사용 가능</span>
+}</pre>
+      <p><strong>왜 쓰나?</strong> .h가 include를 많이 할수록, 그 .h를 포함하는 <em>모든</em> 파일이 다시 컴파일됩니다. 전방 선언으로 <strong>빌드 시간을 크게 줄일 수 있어요.</strong> 단, 포인터가 아닌 직접 멤버이거나 메서드를 호출하면 full include가 필요합니다.</p>
+    `
+  },
+
+  {
+    id: 'c-04', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "UCLASS / UPROPERTY / UFUNCTION 매크로",
+    body: `
+      <p>순수 C++ 클래스에 아래 매크로를 붙이면 언리얼 에디터·블루프린트가 그 클래스를 "볼 수 있게" 됩니다. 붙이지 않으면 C++ 내부에서만 존재합니다.</p>
+      <pre><span class="mac">UCLASS()</span>              <span class="cm">// ① 이 클래스 전체를 언리얼 리플렉션 시스템에 등록
+                       //    메모리 관리(가비지 컬렉션), 에디터 노출,
+                       //    블루프린트로 상속 가능 상태가 됨
+                       //    괄호 안에 Blueprintable, Abstract 등 옵션 추가 가능</span>
+<span class="kw">class</span> AWeapon : <span class="kw">public</span> AActor {
+  <span class="mac">GENERATED_BODY()</span>      <span class="cm">// 리플렉션 코드 자동 삽입 — 항상 클래스 안 첫 줄</span>
+
+  <span class="mac">UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=<span class="str">"Combat"</span>)</span>
+  <span class="cm">// ② 이 변수를 에디터와 블루프린트에 노출
+  //    EditAnywhere   : 에디터 디테일 패널에서 수정 가능
+  //    BlueprintReadWrite : 블루프린트에서 읽기·쓰기 가능 (Get/Set 노드)
+  //    Category="Combat"  : 디테일 패널에서 "Combat" 카테고리로 묶임
+  //    ↓ 이 줄 바로 아래의 변수에만 적용됨</span>
+  <span class="kw">int32</span> Ammo;
+
+  <span class="mac">UFUNCTION(BlueprintCallable, Category=<span class="str">"Combat"</span>)</span>
+  <span class="cm">// ③ 이 함수를 블루프린트 그래프에서 노드로 호출 가능하게 노출
+  //    BlueprintCallable  : BP에서 "Fire" 노드를 끌어다 쓸 수 있음
+  //    ↓ 이 줄 바로 아래의 함수에만 적용됨</span>
+  <span class="kw">void</span> Fire();
+};</pre>
+      <p>자주 쓰는 조합 정리:</p>
+      <pre><span class="mac">UPROPERTY(EditAnywhere, BlueprintReadWrite)</span>   <span class="cm">// 에디터+BP 둘 다 읽고 씀</span>
+<span class="mac">UPROPERTY(VisibleAnywhere, BlueprintReadOnly)</span>  <span class="cm">// 에디터에서 보기만, BP는 읽기만</span>
+<span class="mac">UFUNCTION(BlueprintCallable)</span>                   <span class="cm">// BP에서 노드로 호출</span>
+<span class="mac">UFUNCTION(BlueprintPure)</span>                       <span class="cm">// 실행 핀 없는 Get 노드 (const함수)</span>
+<span class="mac">UFUNCTION(BlueprintImplementableEvent)</span>         <span class="cm">// C++은 선언만, 구현은 BP에서</span></pre>
+    `
+  },
+
+  {
+    id: 'c-15', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    keywords: ['GENERATED_BODY()', '리플렉션', '직렬화', 'Reflection', 'Serialization', 'UHT', '헤더툴', '런타임', 'runtime', 'GC', '가비지컬렉터'],
+    title: "GENERATED_BODY() — 리플렉션과 직렬화",
+    body: `
+      <p><code>GENERATED_BODY()</code>를 이해하려면 두 가지 개념을 먼저 알아야 합니다.</p>
+
+      <p><strong>리플렉션(Reflection) — 런타임에 클래스 구조를 들여다보는 능력</strong></p>
+      <p>일반 C++에서는 컴파일이 끝나고 나면 <em>"이 클래스에 어떤 변수가 있는지"</em>를 프로그램 실행 중에 알 수 없어요. 컴파일러가 다 처리하고 정보를 버리거든요. 언리얼은 여기에 리플렉션 시스템을 추가했습니다. 쉽게 말하면 <strong>"런타임에도 클래스 구조를 들여다볼 수 있는 능력"</strong>이에요.</p>
+      <p>예를 들어 에디터 디테일 패널에서 <code>Health = 100</code>이 보이는 건 리플렉션 덕분입니다. 에디터가 런타임에 "이 액터의 UPROPERTY 목록 보여줘"라고 물어볼 수 있기 때문이에요.</p>
+      <div class="concept-compare">
+        <div class="compare-col">
+          <div class="compare-head sealed">🔒 일반 C++ — 불투명 상자</div>
+          <ul class="compare-list">
+            <li>내부 구조가 외부에 보이지 않음</li>
+            <li>에디터가 변수 목록에 접근 불가</li>
+            <li>블루프린트가 함수 목록을 모름</li>
+            <li>GC가 포인터를 추적할 수 없음</li>
+          </ul>
+        </div>
+        <div class="compare-col">
+          <div class="compare-head open">🔍 UE 클래스 — 투명 상자</div>
+          <ul class="compare-list">
+            <li><code>"Health" (float) = 100.0</code> 조회 가능</li>
+            <li>에디터 디테일 패널에 자동 표시</li>
+            <li>블루프린트 노드로 호출 가능</li>
+            <li>GC가 포인터를 자동으로 추적</li>
+          </ul>
+        </div>
+      </div>
+
+      <p><strong>직렬화(Serialization) — 객체 상태를 파일에 저장하고 다시 불러오는 것</strong></p>
+      <p>레벨을 저장할 때 <em>"이 위치에 이 액터가 있고, Health는 75.0이었다"</em>는 걸 파일에 써야 하잖아요. 이게 직렬화예요. 불러올 때 그 파일을 읽어서 다시 객체를 만드는 게 역직렬화(Deserialization)입니다.</p>
+      <div class="concept-flow">
+        <span class="flow-step">객체 상태</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">직렬화</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">.umap 파일 저장</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">역직렬화</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">객체 복원</span>
+      </div>
+      <p>리플렉션이 있어야 직렬화가 가능합니다. <code>UPROPERTY()</code>가 붙은 변수 목록을 런타임에 알아야 어떤 값을 파일에 저장할지 결정할 수 있거든요.</p>
+
+      <p><strong>GENERATED_BODY()가 자동 삽입하는 코드</strong></p>
+      <pre><span class="cm">// UHT(언리얼 헤더 툴)가 .generated.h 파일에 자동으로 만드는 것들</span>
+
+<span class="mac">GENERATED_BODY()</span>
+<span class="cm">// ① UClass* StaticClass()   → "이 클래스의 타입 정보 주세요"
+//                              IsA&lt;&gt;(), Cast&lt;&gt;() 등 타입 체크 가능하게
+//
+// ② Serialize()             → UPROPERTY 변수를 파일에 저장/불러오기
+//                              레벨 저장·게임 저장·에셋 패키징에 사용
+//
+// ③ UPROPERTY 목록 등록      → 에디터 디테일 패널에 변수 자동 노출
+//                              GC(가비지 컬렉터)가 UObject 포인터 추적
+//
+// ④ UFUNCTION 목록 등록      → 블루프린트 노드 목록에 함수 자동 등록
+//
+// ⑤ 생성자 헬퍼 코드         → SpawnActor 등 UE 방식의 객체 생성 지원</span></pre>
+
+      <p><strong>없으면 어떻게 되나?</strong></p>
+      <pre><span class="mac">UCLASS()</span>
+<span class="kw">class</span> AMyActor : <span class="kw">public</span> AActor {
+  <span class="cm">// GENERATED_BODY() ← 이 줄을 삭제하면</span>
+
+  <span class="mac">UPROPERTY(EditAnywhere)</span>
+  <span class="kw">float</span> Health = 100.f;   <span class="cm">// 에디터 디테일 패널에 표시 안 됨</span>
+
+  <span class="mac">UFUNCTION(BlueprintCallable)</span>
+  <span class="kw">void</span> Fire();             <span class="cm">// 블루프린트 노드로 사용 불가</span>
+};
+<span class="cm">// 컴파일은 될 수 있지만 런타임 크래시·포인터 누수·저장 불가 등 발생</span></pre>
+      <p>한 줄 요약 — <strong>GENERATED_BODY()는 순수 C++ 클래스를 언리얼 에디터·블루프린트·GC가 이해하고 사용할 수 있는 "열린 구조"로 만들어주는 열쇠</strong>입니다.</p>
+    `
+  },
+
+  {
+    id: 'c-05', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "접두사 A · U · F · I",
+    body: `
+      <p>언리얼은 클래스 이름 앞에 <strong>종류 표시 글자</strong>를 붙입니다.</p>
+      <p><code>A</code> = <strong>Actor</strong> — 월드에 직접 배치 가능 (AActor, APawn, ACharacter).<br>
+      <code>U</code> = <strong>UObject</strong> 자손 중 Actor가 아닌 것 — 부품·UI·에셋 (UActorComponent).<br>
+      <code>F</code> = 가벼운 데이터 묶음 (FVector, FString).<br>
+      <code>I</code> = <strong>Interface</strong> — "이런 기능 있어요" 약속.</p>
+      <p>판별 기준: <strong>월드에 혼자 놓을 수 있으면 <code>A</code>, 무언가에 붙어야 하면 <code>U</code></strong>. 자동차(A) 안에 엔진·바퀴(U)가 박히는 관계.</p>
+    `
+  },
+
+  {
+    id: 'c-09', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "포인터 * 와 참조 & — 헷갈리는 두 개념",
+    body: `
+      <p><strong>포인터(<code>*</code>)</strong>는 "메모리 주소를 담는 변수", <strong>참조(<code>&amp;</code>)</strong>는 "변수의 별명". UE 코드에는 포인터가 매우 많이 나오므로 두 개념을 명확히 구분해야 합니다.</p>
+      <pre><span class="cm">// ══════════════════════════════════════
+// 포인터 (*) — "주소를 담는 변수"
+// ══════════════════════════════════════</span>
+
+AActor* Target = <span class="kw">nullptr</span>;
+<span class="cm">// AActor*  : "AActor를 가리키는 포인터 타입"
+//   '*'    : 포인터 타입임을 선언하는 기호
+// nullptr  : "아무것도 가리키지 않음" (빈 주소)
+//            포인터 초기값은 반드시 nullptr로! (미초기화 포인터 = 크래시 위험)</span>
+
+<span class="kw">if</span> (Target != <span class="kw">nullptr</span>) {
+<span class="cm">// 사용 전 반드시 null 체크!
+// nullptr인 포인터를 쓰면 → 접근 위반(Access Violation) 크래시 발생</span>
+
+  Target->Destroy();
+  <span class="cm">// '->' : 포인터를 통해 멤버(변수·함수)에 접근하는 연산자
+  //        일반 변수면 '.'(점)을 쓰지만, 포인터는 '->'를 사용
+  //  Target->Destroy() = "Target이 가리키는 AActor의 Destroy 함수를 호출"</span>
+}
+
+<span class="cm">// ══════════════════════════════════════
+// 참조 (&) — "변수의 별명"
+// ══════════════════════════════════════</span>
+
+<span class="kw">void</span> AddDamage(<span class="kw">float</span>&amp; OutHealth, <span class="kw">float</span> Dmg)
+<span class="cm">// float&   : "float의 참조" 타입
+//   '&'    : 참조 타입임을 선언하는 기호
+// OutHealth: 이 인자는 호출한 쪽 변수의 별명
+//            → 함수 안에서 OutHealth를 수정하면 원본 변수가 직접 바뀜
+// Dmg      : 일반 인자. 값을 복사해서 받음 (원본 안 바뀜)
+// Out 접두사: UE 관례 — "함수 밖으로 결과를 내보내는 인자"임을 표시</span>
+{
+  OutHealth -= Dmg;  <span class="cm">// 원본 변수가 직접 수정됨</span>
+}
+
+<span class="cm">// 호출 예시</span>
+<span class="kw">float</span> HP = 100.f;
+AddDamage(HP, 30.f);  <span class="cm">// HP가 참조로 전달 → 호출 후 HP = 70.f</span></pre>
+      <p><strong>포인터 vs 참조 비교</strong> — 포인터는 nullptr 가능·재할당 가능, 참조는 nullptr 없음·선언 시 반드시 연결·재할당 불가. UE에서는 액터 포인터(<code>AActor*</code>) 패턴이 가장 많고, 함수 출력 인자엔 참조(<code>&amp;</code>)를 자주 씁니다.</p>
+    `
+  },
+
+  {
+    id: 'c-08', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "생성자와 초기화 리스트",
+    body: `
+      <p>생성자는 <strong>객체가 만들어질 때 딱 한 번 자동 호출</strong>되는 함수입니다. UE에서는 에디터에 액터를 배치하는 순간 호출되어 기본값을 설정하는 역할을 합니다.</p>
+      <pre><span class="cm">// ════════════════════
+// 📄 .h — 선언
+// ════════════════════</span>
+<span class="kw">class</span> AMyActor : <span class="kw">public</span> AActor {
+  <span class="mac">GENERATED_BODY()</span>
+<span class="kw">public:</span>
+  AMyActor();   <span class="cm">// 생성자 선언
+                // 클래스 이름과 동일, 반환형(void 포함) 없음
+                // 구현은 .cpp에 따로 작성</span>
+};
+
+<span class="cm">// ════════════════════
+// 📄 .cpp — 구현 방법 1: 본문에서 초기화
+// ════════════════════</span>
+AMyActor::AMyActor()    <span class="cm">// 'AMyActor::AMyActor' = "AMyActor 클래스의 AMyActor 함수"
+                        // '::' = 범위 연산자. 어느 클래스의 함수인지 명시</span>
+{
+  PrimaryActorTick.bCanEverTick = <span class="kw">true</span>;
+  <span class="cm">// PrimaryActorTick : UE가 자동 제공하는 Tick 관련 설정 구조체
+  // bCanEverTick     : true면 매 프레임 Tick() 함수를 호출함</span>
+
+  Health = 100.f;       <span class="cm">// 멤버 변수에 값 대입 (초기화)</span>
+}
+
+<span class="cm">// ════════════════════
+// 📄 .cpp — 구현 방법 2: 초기화 리스트 (권장)
+// ════════════════════</span>
+AMyActor::AMyActor()
+  : Health(100.f)       <span class="cm">// ':' 뒤에 멤버변수(초기값) 나열 = 초기화 리스트
+                        // 본문 {} 실행 전에 먼저 초기화됨 → 더 효율적</span>
+  , AmmoCount(30)       <span class="cm">// ',' 로 구분해 여러 멤버를 이어서 초기화</span>
+                        <span class="cm">// const 멤버 / 참조(&) 멤버는 이 방법만 가능!</span>
+{
+  PrimaryActorTick.bCanEverTick = <span class="kw">true</span>;
+  <span class="cm">// Tick 설정처럼 단순 대입이 아닌 로직은 여기에</span>
+}</pre>
+      <p><strong>초기화 리스트를 권장하는 이유</strong> — 본문 방식은 "기본값으로 만든 뒤 덮어쓰기"이고, 리스트 방식은 "처음부터 원하는 값으로 만들기"라서 불필요한 초기화 1회를 줄일 수 있습니다.</p>
+    `
+  },
+
+  {
+    id: 'c-10', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "상속(`: public Base`)과 Super:: 호출",
+    body: `
+      <p><code>: public 부모</code>로 부모의 모든 기능을 물려받고, 자식에서 재정의할 때는 반드시 <code>Super::</code>로 부모 구현도 함께 실행합니다.</p>
+      <pre><span class="cm">// ════════════════════
+// 📄 .h — 상속 선언
+// ════════════════════</span>
+<span class="kw">class</span> AMyCharacter : <span class="kw">public</span> ACharacter {
+<span class="cm">// AMyCharacter  : 자식 클래스 (새로 만드는 클래스)
+// : public      : public 상속. 부모의 public/protected 멤버를 그대로 유지
+// ACharacter    : 부모 클래스. 이동·점프·물리 등 기능을 모두 물려받음</span>
+
+  <span class="mac">GENERATED_BODY()</span>
+<span class="kw">protected:</span>
+  <span class="kw">virtual void</span> BeginPlay() <span class="kw">override</span>;
+  <span class="cm">// virtual  : 부모(ACharacter → AActor)에 이미 virtual로 선언되어 있음
+  // override : "나는 부모의 virtual 함수를 재정의함"을 컴파일러에 명시
+  //            함수 이름 오타 시 컴파일 오류로 바로 알 수 있음</span>
+};
+
+<span class="cm">// ════════════════════
+// 📄 .cpp — 재정의 구현
+// ════════════════════</span>
+<span class="kw">void</span> AMyCharacter::BeginPlay() {
+
+  Super::BeginPlay();
+  <span class="cm">// Super  : 부모 클래스(ACharacter)를 가리키는 UE 키워드
+  // '::'   : 범위 연산자. "Super 클래스의 BeginPlay를 호출"
+  // 역할  : 부모의 BeginPlay 구현을 먼저 실행
+  //         컴포넌트 등록, 게임 모드 연결 등 부모의 초기화 로직이 담겨 있음
+  //         빠뜨리면 해당 초기화가 누락되어 조용한 버그 발생
+  //         → 거의 항상 함수 첫 번째 줄에 호출!</span>
+
+  <span class="cm">// 이 아래에 자식만의 추가 로직을 작성</span>
+  UE_LOG(LogTemp, Warning, TEXT(<span class="str">"캐릭터 BeginPlay!"</span>));
+}</pre>
+      <p><strong>상속 깊이 예시</strong> — <code>AMyCharacter → ACharacter → APawn → AActor → UObject</code>. <code>Super::BeginPlay()</code>를 호출하면 이 체인이 위로 올라가며 각 부모의 초기화가 순서대로 실행됩니다.</p>
+    `
+  },
+
+  {
+    id: 'c-11', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "virtual 과 override — 함수를 자식에서 재정의",
+    body: `
+      <p><code>virtual</code>은 "자식이 바꿔도 된다"는 허가증이고, <code>override</code>는 "나는 실제로 바꾼다"는 선언입니다. UE의 <code>BeginPlay</code>, <code>Tick</code>, <code>TakeDamage</code> 등이 모두 이 방식으로 동작합니다.</p>
+      <pre><span class="cm">// ════════════════════════════════════
+// 부모 클래스 (AActor 내부 — 이미 UE가 정의)
+// ════════════════════════════════════</span>
+<span class="kw">virtual void</span> BeginPlay();
+<span class="cm">// 'virtual' : "이 함수는 자식 클래스에서 재정의(override) 가능"
+//             가상 함수 테이블(vtable)에 등록됨
+//             런타임에 실제 타입에 맞는 함수를 호출 (다형성)</span>
+
+<span class="kw">virtual void</span> Tick(<span class="kw">float</span> DeltaTime);
+<span class="cm">// DeltaTime : 이전 프레임과 현재 프레임 사이 경과 시간(초)
+//             이동 계산 시 곱해줘야 프레임레이트 독립적인 속도가 됨</span>
+
+<span class="cm">// ════════════════════════════════════
+// 자식 클래스 .h — 재정의 선언
+// ════════════════════════════════════</span>
+<span class="kw">virtual void</span> BeginPlay() <span class="kw">override</span>;
+<span class="cm">// 'override' : "부모에 virtual로 선언된 함수를 내가 재정의함"을 명시
+//              부모에 virtual이 없거나 이름이 다르면 → 컴파일 오류
+//              생략해도 동작하지만 항상 붙이는 것이 안전</span>
+
+<span class="kw">virtual void</span> Tick(<span class="kw">float</span> DeltaTime) <span class="kw">override</span>;
+
+<span class="cm">// ════════════════════════════════════
+// 순수 가상 함수 (= 0)
+// ════════════════════════════════════</span>
+<span class="kw">virtual void</span> Fire() = 0;
+<span class="cm">// '= 0'  : 순수 가상 함수 선언
+//          "이 클래스를 상속한 자식은 반드시 Fire를 구현해야 함"
+//          구현 없이 상속만 받으면 → 컴파일 오류 (빠짐 방지)
+//          이 클래스 자체로는 객체를 만들 수 없음 (추상 클래스)</span>
+
+<span class="cm">// ════════════════════════════════════
+// 자식 클래스 .cpp — 실제 구현
+// ════════════════════════════════════</span>
+<span class="kw">void</span> AMyActor::Tick(<span class="kw">float</span> DeltaTime) {
+  Super::Tick(DeltaTime);  <span class="cm">// 부모의 Tick 먼저 실행</span>
+  <span class="cm">// 매 프레임 실행할 로직</span>
+}</pre>
+      <p><code>override</code>는 생략해도 재정의는 되지만, 오타 시 새 함수가 만들어져 부모 것이 그대로 실행되는 조용한 버그가 생깁니다. <strong>항상 붙이는 습관</strong>을 들이세요.</p>
+    `
+  },
+
+  {
+    id: 'c-12', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "const — 바꾸지 않겠다는 약속",
+    body: `
+      <p><code>const</code>는 <strong>"이 값을 바꾸지 않겠다"</strong>는 컴파일러와의 약속입니다. 세 가지 자리에 각각 다른 의미로 붙습니다.</p>
+      <pre><span class="cm">// ══ 1) 변수 앞 const ════════════════════════════</span>
+<span class="kw">const float</span> MaxHealth = 100.f;
+<span class="cm">// 변수 앞에 const = 이 변수의 값을 절대 바꿀 수 없음
+// MaxHealth = 200.f;  → 컴파일 오류!
+// 상수(변하지 않는 값)에 붙여 의도를 명확히 표현</span>
+
+<span class="cm">// ══ 2) 함수 인자의 const & ═══════════════════════</span>
+<span class="kw">void</span> PrintInfo(<span class="kw">const</span> FString&amp; Name) {
+<span class="cm">// const  : "이 함수 안에서 Name을 수정하지 않겠다"는 약속
+//          Name = "다른값"; → 컴파일 오류
+// '&'    : 참조로 받음. 복사 없이 원본을 직접 참조
+// const + & 조합 : 복사 비용 0 + 수정 불가 → 성능과 안전성 모두 확보
+//                  FString 같은 큰 타입에 자주 사용</span>
+  <span class="cm">// Name을 읽기만 함</span>
+}
+
+<span class="cm">// ══ 3) 멤버 함수 뒤 const ════════════════════════</span>
+<span class="cm">// 📄 .h 선언</span>
+<span class="kw">float</span> GetHealth() <span class="kw">const</span>;
+<span class="cm">// 함수 뒤 const = "이 함수는 멤버 변수를 바꾸지 않는다"는 약속
+// 어기면(멤버 수정 시) 컴파일 오류
+// UE의 BlueprintPure UFUNCTION은 보통 const 함수로 만듦</span>
+
+<span class="cm">// 📄 .cpp 구현 (선언과 동일하게 const 붙임)</span>
+<span class="kw">float</span> AMyActor::GetHealth() <span class="kw">const</span>
+{
+  <span class="kw">return</span> Health;   <span class="cm">// 읽기만 → const 함수에서 허용</span>
+  <span class="cm">// Health = 0;   → 컴파일 오류! const 함수에서 멤버 수정 불가</span>
+}
+
+<span class="cm">// ══ UE에서 const + UFUNCTION 조합 ════════════════</span>
+<span class="mac">UFUNCTION(BlueprintPure)</span>      <span class="cm">// 실행 핀 없는 순수 Get 노드로 노출</span>
+<span class="kw">float</span> GetHealth() <span class="kw">const</span>;      <span class="cm">// "값을 읽기만 하는 함수" → const 필수</span></pre>
+      <p><strong>기억법</strong> — "읽기만 하면 const". 변수는 상수화, 인자는 큰 타입을 안전하게 읽기, 멤버 함수는 클래스 상태 보호.</p>
+    `
+  }
+];
+
+/* ---- 블루프린트 예제 ----
+   graph 구조로 노드/핀/연결을 정의하면 실제 BP 그래프처럼 렌더링됩니다.
+   node.type: event(빨강) | function(파랑) | pure(초록) | variable(초록) | flow(회색)
+   pin.type: exec(실행,흰삼각형) | bool | float | int | string | vector | object | name
+   pin.value: 입력 핀에 적힌 리터럴 값(작은 입력칸으로 표시)
+   connections: { from:[노드id, 핀id], to:[노드id, 핀id] }
+*/
+const blueprintExamples = [
+  {
+    id: 'bp-01', title: '게임 시작할 때 화면에 메시지 출력하기',
+    category: '기초', difficulty: 1,
+    desc: '레벨이 시작될 때 화면에 "Hello, Unreal!" 같은 메시지를 띄우는 가장 기본적인 패턴입니다. <strong>BeginPlay</strong> 이벤트와 <strong>Print String</strong> 노드를 사용합니다.',
+    hint: '레벨 블루프린트나 액터 블루프린트의 이벤트 그래프에서 "Begin Play"를 검색해보세요. 게임이 시작될 때 자동으로 한 번 호출되는 이벤트입니다.',
+    graph: {
+      nodes: [
+        { id: 'begin', title: 'Event BeginPlay', type: 'event', x: 20, y: 30, w: 175,
+          inputs: [], outputs: [{ id: 'exec', type: 'exec' }] },
+        { id: 'print', title: 'Print String', type: 'function', x: 300, y: 30, w: 270,
+          inputs: [
+            { id: 'exec', type: 'exec' },
+            { id: 'instr', type: 'string', label: 'In String', value: 'Hello, Unreal!' }
+          ],
+          outputs: [{ id: 'exec', type: 'exec' }] }
+      ],
+      connections: [ { from: ['begin', 'exec'], to: ['print', 'exec'] } ]
+    },
+    steps: [
+      '레벨 블루프린트 열기 (툴바 > Blueprints > Open Level Blueprint)',
+      'Event Graph의 빈 곳에 우클릭 → "Begin Play" 검색 후 추가',
+      '"Event BeginPlay" 노드의 흰색 실행 핀(▷)을 잡고 빈 곳으로 드래그',
+      '뜨는 검색창에 "Print String" 입력 후 선택 → 와이어가 자동으로 연결됨',
+      'Print String 노드의 In String 칸에 "Hello, Unreal!" 입력',
+      '컴파일 후 플레이 — 화면 좌상단에 메시지가 잠깐 표시됨'
+    ],
+    explain: '<strong>Event BeginPlay</strong>는 액터(또는 레벨)가 월드에 등장한 직후 한 번 실행되는 이벤트입니다. 흰 실행 핀에서 나온 와이어가 Print String의 실행 핀으로 들어가는 흐름이 곧 "시작되면 → 출력해라"입니다. <strong>Print String</strong>은 디버깅용 노드로, 변수가 의도대로 들어왔는지 확인할 때 자주 씁니다.'
+  },
+  {
+    id: 'bp-02', title: '키를 누르면 화면에 메시지 출력하기',
+    category: '입력', difficulty: 1,
+    desc: '플레이 중 특정 키(예: Space)를 누르면 메시지가 출력되도록 만듭니다. 입력 이벤트의 기본 패턴입니다.',
+    hint: '이벤트 그래프에서 우클릭 후 "Space" 같은 키 이름을 검색하면 입력 이벤트가 바로 나옵니다. 입력 이벤트는 "Pressed"와 "Released" 두 가지 실행 출력 핀을 가집니다.',
+    graph: {
+      nodes: [
+        { id: 'space', title: 'Space Bar', type: 'event', x: 20, y: 30, w: 175,
+          inputs: [], outputs: [
+            { id: 'pressed', type: 'exec', label: 'Pressed' },
+            { id: 'released', type: 'exec', label: 'Released' }
+          ] },
+        { id: 'print', title: 'Print String', type: 'function', x: 300, y: 30, w: 270,
+          inputs: [
+            { id: 'exec', type: 'exec' },
+            { id: 'instr', type: 'string', label: 'In String', value: 'Space pressed!' }
+          ],
+          outputs: [{ id: 'exec', type: 'exec' }] }
+      ],
+      connections: [ { from: ['space', 'pressed'], to: ['print', 'exec'] } ]
+    },
+    steps: [
+      '플레이어가 빙의(possess)할 폰의 블루프린트 열기 (또는 레벨 블루프린트)',
+      'Event Graph 빈 곳에 우클릭 → "Space" 검색 → "Space Bar" 입력 이벤트 추가',
+      'Pressed 핀에서 드래그해서 Print String 노드에 연결',
+      'In String에 "Space pressed!" 입력 → 컴파일 → 플레이',
+      '플레이 중 스페이스바를 누르면 메시지가 뜸'
+    ],
+    explain: '여기서 핵심은 <strong>Pressed 핀에서만</strong> 와이어를 뽑았다는 점입니다. Released 핀은 비어 있으므로(연결 안 됨) 키를 뗄 때는 아무 일도 안 일어납니다. 입력 이벤트는 직관적이지만 키를 직접 박아두는 방식이라, 실무에서는 <strong>Enhanced Input</strong>(액션을 추상화한 시스템)을 더 많이 씁니다. 입문 단계에선 일단 직접 키 이벤트로 감을 잡으세요.'
+  },
+  {
+    id: 'bp-03', title: '변수를 에디터에서 수정 가능하게 만들기',
+    category: '변수', difficulty: 1,
+    desc: '"적의 체력", "이동 속도" 같은 값을 코드 안에 박아두는 대신, 디테일 패널에서 직접 조정할 수 있게 노출합니다. 변수는 그래프에서 Get / Set 두 가지 노드 형태로 나타납니다.',
+    hint: '블루프린트 좌측 "My Blueprint" 패널의 Variables 섹션에서 "+" 버튼으로 변수를 만들고, 변수를 클릭하면 우측에 설정이 뜹니다. 그 안에 "Instance Editable"이라는 옵션이 있습니다.',
+    graph: {
+      nodes: [
+        { id: 'get', title: 'Health', type: 'variable', x: 20, y: 40, w: 150,
+          inputs: [], outputs: [{ id: 'val', type: 'float', label: 'Health' }] },
+        { id: 'set', title: 'SET', type: 'variable', x: 320, y: 30, w: 200,
+          inputs: [
+            { id: 'exec', type: 'exec' },
+            { id: 'health', type: 'float', label: 'Health', value: '100.0' }
+          ],
+          outputs: [
+            { id: 'exec', type: 'exec' },
+            { id: 'out', type: 'float', label: 'Health' }
+          ] }
+      ],
+      connections: []
+    },
+    steps: [
+      '블루프린트 좌측 My Blueprint 패널에서 Variables 옆 "+" 클릭',
+      '변수 이름을 "Health"로, 타입을 Float로 설정',
+      '컴파일 (변수 기본값을 지정하려면 컴파일이 한 번 필요)',
+      '변수 클릭 → 우측 디테일 패널에서 "Instance Editable" 체크박스 켜기',
+      '그래프로 변수를 끌어다 놓으면 Get(초록 작은 노드) 또는 Set 노드로 추가됨',
+      '레벨에 이 블루프린트를 배치한 뒤 디테일 패널을 보면 Health 칸이 보임'
+    ],
+    explain: '왼쪽은 <strong>Get 노드</strong>(값을 읽어옴, 출력 핀만 있음), 오른쪽은 <strong>Set 노드</strong>(값을 새로 넣음, 실행 핀이 있어 흐름 중간에 끼움)입니다. 둘 다 같은 Health 변수를 가리킵니다. Instance Editable은 C++의 <code>UPROPERTY(EditAnywhere)</code>와 같은 역할이에요. 이 설정 하나로 같은 적 블루프린트를 두고도 "강한 적", "약한 적"을 디테일 패널에서 즉석으로 만들 수 있습니다.'
+  },
+  {
+    id: 'bp-04', title: '영역에 들어온 액터 감지하기 (충돌)',
+    category: '충돌', difficulty: 2,
+    desc: '플레이어가 어떤 영역에 들어왔을 때 반응하는 트리거를 만듭니다. 함정, 체크포인트, 픽업 아이템에 다 쓰이는 패턴입니다.',
+    hint: '액터에 충돌을 감지할 컴포넌트(Box Collision 등)를 추가하고, 그 컴포넌트의 "On Component Begin Overlap" 이벤트를 사용합니다. 이 이벤트는 실행 핀 외에 "누가 들어왔는지" 알려주는 Other Actor 데이터 핀도 함께 줍니다.',
+    graph: {
+      nodes: [
+        { id: 'overlap', title: 'On Component Begin Overlap', type: 'event', x: 20, y: 30, w: 250,
+          inputs: [], outputs: [
+            { id: 'exec', type: 'exec' },
+            { id: 'comp', type: 'object', label: 'Overlapped Comp' },
+            { id: 'other', type: 'object', label: 'Other Actor' }
+          ] },
+        { id: 'print', title: 'Print String', type: 'function', x: 370, y: 30, w: 250,
+          inputs: [
+            { id: 'exec', type: 'exec' },
+            { id: 'instr', type: 'string', label: 'In String', value: 'Entered!' }
+          ],
+          outputs: [{ id: 'exec', type: 'exec' }] }
+      ],
+      connections: [ { from: ['overlap', 'exec'], to: ['print', 'exec'] } ]
+    },
+    steps: [
+      '새 액터 블루프린트 생성 (Content 폴더 우클릭 → Blueprint Class → Actor)',
+      '컴포넌트 패널에서 "Add" → "Box Collision" 추가',
+      'Box Collision 선택 → 디테일 패널 아래쪽 Events → "On Component Begin Overlap" 옆 + 클릭',
+      '자동으로 이벤트 그래프에 노드가 생성됨',
+      '그 노드의 실행 핀에서 드래그 → Print String 연결',
+      '레벨에 액터 배치 → 플레이어가 박스 안으로 들어가면 메시지 출력'
+    ],
+    explain: '실행 핀(흰 와이어)만 Print String으로 연결했습니다. 파란 <strong>Other Actor</strong> 핀은 아직 비어 있는데, 여기서 와이어를 뽑아 "Cast To BP_Player"에 연결하면 "들어온 게 플레이어일 때만" 반응하게 만들 수 있어요. 데이터 핀(원)은 색으로 타입을 구분합니다 — 파란 원은 오브젝트(액터) 타입입니다. 반대 이벤트인 End Overlap은 영역을 빠져나갈 때 발동합니다.'
+  }
+];
+
+/* ---- C++ 예제 ---- */
+const cppExamples = [
+  {
+    id: 'cpp-01', title: '가장 기본적인 Actor 클래스 만들기',
+    category: '기초', difficulty: 1,
+    desc: '월드에 배치 가능한 가장 단순한 액터 클래스를 C++로 만들어봅니다. 매크로 위치와 헤더/구현 분리를 확인합니다.',
+    hint: '에디터 메뉴 Tools → New C++ Class → Actor를 선택하면 .h와 .cpp가 자동 생성됩니다. 클래스 이름 앞에는 자동으로 A가 붙습니다.',
+    files: [
+      {
+        name: 'MyActor.h', type: 'cpp',
+        code: `<span class="cm">// 헤더 — 무엇이 있는지 선언</span>
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "MyActor.generated.h"
+
+<span class="mac">UCLASS()</span>
+<span class="kw">class</span> MYPROJECT_API AMyActor : <span class="kw">public</span> AActor
+{
+    <span class="mac">GENERATED_BODY()</span>
+
+<span class="kw">public</span>:
+    AMyActor();
+
+<span class="kw">protected</span>:
+    <span class="kw">virtual void</span> BeginPlay() <span class="kw">override</span>;
+};`
+      },
+      {
+        name: 'MyActor.cpp', type: 'cpp',
+        code: `<span class="cm">// 구현 — 실제로 어떻게 동작하는지</span>
+#include "MyActor.h"
+
+AMyActor::AMyActor()
+{
+    PrimaryActorTick.bCanEverTick = <span class="kw">false</span>;
+}
+
+<span class="kw">void</span> AMyActor::BeginPlay()
+{
+    <span class="kw">Super</span>::BeginPlay();
+}`
+      }
+    ],
+    explain: `핵심 포인트 네 가지. ① <code>#pragma once</code>는 같은 헤더가 두 번 포함되는 걸 막는 표준 관용구. ② <code>#include "MyActor.generated.h"</code>는 언리얼이 매크로를 처리하면서 자동 생성하는 파일로, 항상 헤더의 마지막 include여야 합니다. ③ <code>UCLASS()</code> 매크로가 이 클래스를 언리얼이 관리하게 만들고, <code>GENERATED_BODY()</code>가 그에 필요한 보일러플레이트 코드를 자동 삽입합니다. ④ <code>MYPROJECT_API</code>는 다른 모듈에서 이 클래스를 쓸 수 있게 해주는 매크로 — 프로젝트 이름에 따라 자동으로 결정됩니다.`
+  },
+  {
+    id: 'cpp-02', title: '변수를 에디터에서 수정 가능하게 노출하기',
+    category: '변수', difficulty: 1,
+    desc: '액터의 Health 변수를 에디터 디테일 패널에서 직접 수정할 수 있게 만듭니다. 블루프린트 예제 03의 C++ 버전입니다.',
+    hint: '변수 선언 한 줄 위에 UPROPERTY 매크로를 붙이고, 괄호 안에 노출 방식을 지정합니다. 가장 많이 쓰는 조합은 EditAnywhere + BlueprintReadWrite입니다.',
+    files: [
+      {
+        name: 'MyActor.h', type: 'cpp',
+        code: `<span class="mac">UCLASS()</span>
+<span class="kw">class</span> MYPROJECT_API AMyActor : <span class="kw">public</span> AActor
+{
+    <span class="mac">GENERATED_BODY()</span>
+
+<span class="kw">public</span>:
+    <span class="cm">// 에디터에서 수정 + 블루프린트에서 읽기/쓰기 가능</span>
+    <span class="mac">UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = <span class="str">"Stats"</span>)</span>
+    <span class="kw">float</span> Health = 100.0f;
+
+    <span class="cm">// 에디터엔 보이지만 수정 불가 (읽기 전용 표시)</span>
+    <span class="mac">UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = <span class="str">"Stats"</span>)</span>
+    <span class="kw">float</span> CurrentHealth = 100.0f;
+};`
+      }
+    ],
+    explain: `<code>EditAnywhere</code>는 에디터에서 수정 가능, <code>VisibleAnywhere</code>는 표시만. <code>BlueprintReadWrite</code>를 붙이면 블루프린트 그래프에서 Get/Set 노드로 만질 수 있고, <code>BlueprintReadOnly</code>는 Get만. <code>Category = "Stats"</code>는 같은 카테고리 변수들을 디테일 패널에서 한 그룹으로 묶어 보여주는 옵션 — 변수가 많아질수록 필수입니다. 기본값 <code>= 100.0f</code>는 일반 C++ 문법이고 매크로와 무관합니다.`
+  },
+  {
+    id: 'cpp-03', title: 'BeginPlay에서 로그·메시지 출력하기',
+    category: '기초', difficulty: 1,
+    desc: 'C++에서 게임 시작 시 메시지를 출력하는 두 가지 방법: 출력 로그(개발자용)와 화면 메시지(블루프린트의 Print String 같은 것).',
+    hint: '출력 로그는 UE_LOG 매크로, 화면 메시지는 GEngine->AddOnScreenDebugMessage를 씁니다. 둘 다 BeginPlay 안에 작성합니다.',
+    files: [
+      {
+        name: 'MyActor.cpp', type: 'cpp',
+        code: `#include "MyActor.h"
+#include "Engine/Engine.h"  <span class="cm">// GEngine 사용 위해 필요</span>
+
+<span class="kw">void</span> AMyActor::BeginPlay()
+{
+    <span class="kw">Super</span>::BeginPlay();
+
+    <span class="cm">// 1. 출력 로그(Output Log)에 찍기 — 개발자용</span>
+    UE_LOG(LogTemp, Warning, TEXT(<span class="str">"Hello from C++!"</span>));
+
+    <span class="cm">// 2. 게임 화면에 표시 — 블루프린트의 Print String과 동일</span>
+    <span class="kw">if</span> (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,                         <span class="cm">// Key (-1 = 매번 새 줄)</span>
+            5.0f,                       <span class="cm">// 표시 시간(초)</span>
+            FColor::Green,
+            TEXT(<span class="str">"Hello, Unreal!"</span>)
+        );
+    }
+}`
+      }
+    ],
+    explain: `<code>UE_LOG</code>는 에디터 Output Log 창에 찍히는 디버그 로그. 첫 인자 <code>LogTemp</code>는 임시 카테고리(나만의 카테고리도 만들 수 있음), 두 번째는 심각도(Log/Warning/Error). 화면 메시지는 <code>GEngine->AddOnScreenDebugMessage</code> — 첫 인자 Key를 -1로 주면 매번 새 줄, 같은 숫자로 주면 그 줄을 덮어씁니다. <code>TEXT()</code>로 문자열을 감싸는 이유는 언리얼이 유니코드 문자열을 쓰기 때문 — 그냥 <code>"..."</code>로 두면 인코딩 문제로 안 나올 수 있어요.`
+  },
+  {
+    id: 'cpp-04', title: '블루프린트에서 호출 가능한 함수 만들기',
+    category: '함수', difficulty: 2,
+    desc: 'C++로 작성한 함수를 블루프린트 그래프에서 노드로 끌어다 쓸 수 있게 만듭니다. 하이브리드 워크플로우의 기본입니다.',
+    hint: '함수 선언 위에 UFUNCTION(BlueprintCallable) 매크로를 붙이고, Category 지정자로 그룹을 정해줍니다. 값을 돌려주기만 하는 함수는 BlueprintPure가 더 적합합니다.',
+    files: [
+      {
+        name: 'MyActor.h', type: 'cpp',
+        code: `<span class="mac">UCLASS()</span>
+<span class="kw">class</span> MYPROJECT_API AMyActor : <span class="kw">public</span> AActor
+{
+    <span class="mac">GENERATED_BODY()</span>
+
+<span class="kw">public</span>:
+    <span class="cm">// 동작을 일으키는 함수 → BlueprintCallable</span>
+    <span class="mac">UFUNCTION(BlueprintCallable, Category = <span class="str">"Combat"</span>)</span>
+    <span class="kw">void</span> TakeDamage(<span class="kw">float</span> Amount);
+
+    <span class="cm">// 값만 돌려주는 함수 → BlueprintPure (실행 핀 없는 깔끔한 노드)</span>
+    <span class="mac">UFUNCTION(BlueprintPure, Category = <span class="str">"Stats"</span>)</span>
+    <span class="kw">float</span> GetHealthPercent() <span class="kw">const</span>;
+
+<span class="kw">private</span>:
+    <span class="mac">UPROPERTY(EditAnywhere, Category = <span class="str">"Stats"</span>)</span>
+    <span class="kw">float</span> MaxHealth = 100.0f;
+
+    <span class="mac">UPROPERTY(VisibleAnywhere, Category = <span class="str">"Stats"</span>)</span>
+    <span class="kw">float</span> CurrentHealth = 100.0f;
+};`
+      },
+      {
+        name: 'MyActor.cpp', type: 'cpp',
+        code: `<span class="kw">void</span> AMyActor::TakeDamage(<span class="kw">float</span> Amount)
+{
+    CurrentHealth = FMath::Max(0.0f, CurrentHealth - Amount);
+    UE_LOG(LogTemp, Log, TEXT(<span class="str">"HP: %f"</span>), CurrentHealth);
+}
+
+<span class="kw">float</span> AMyActor::GetHealthPercent() <span class="kw">const</span>
+{
+    <span class="kw">if</span> (MaxHealth &lt;= 0.0f) <span class="kw">return</span> 0.0f;
+    <span class="kw">return</span> CurrentHealth / MaxHealth;
+}`
+      }
+    ],
+    explain: `<code>BlueprintCallable</code>은 흰색 실행 핀이 달린 "동작" 노드를 만들어줍니다 (TakeDamage처럼 상태를 바꾸는 함수에 적합). <code>BlueprintPure</code>는 실행 핀 없이 동그란 데이터 핀만 있는 "조회" 노드 — 현재 체력 비율처럼 값만 계산해서 돌려줄 때 쓰면 그래프가 훨씬 깔끔해집니다. <code>const</code>가 붙은 멤버 함수만 Pure로 만들 수 있는 관습이 있어요. <code>Category</code>를 잘 정해두면 블루프린트 컨텍스트 메뉴에서 같은 카테고리 함수들이 묶여 찾기 쉽습니다.`
+  }
+];
+
+/* ---- 퀴즈 ---- */
+const questions = [
+  // ── 공통 ──
+  { cat:'공통', type: "객관식", q: "입문자가 언리얼을 배울 때 권장되는 순서는?",
+    options: ["C++을 완벽히 익힌 뒤 블루프린트로", "블루프린트로 엔진을 먼저 이해한 뒤 C++로", "둘을 처음부터 동시에 깊게", "블루프린트만 쓰고 C++은 안 배움"],
+    answer: 1, explain: "블루프린트로 엔진 구조를 먼저 익히면, 노드가 C++ 함수에 거의 그대로 대응하므로 C++ 전환이 수월해집니다." },
+
+  // ── 블루프린트 ──
+  { cat:'블루프린트', type: "객관식", q: "블루프린트에서 로직 작업을 주로 하는 공간은?",
+    options: ["콘텐츠 브라우저", "머티리얼 에디터", "이벤트 그래프(Event Graph)", "월드 아웃라이너"],
+    answer: 2, explain: "이벤트 그래프에서 노드를 배치하고 핀을 연결해 게임 로직을 만듭니다." },
+  { cat:'블루프린트', type: "객관식", q: "흰색 삼각형(▷) 모양의 핀이 나타내는 것은?",
+    options: ["Boolean 값", "실행(Exec) 흐름", "Float 숫자", "오브젝트 참조"],
+    answer: 1, explain: "흰 삼각형은 실행 핀으로, 노드가 실행되는 순서(흐름)를 연결합니다." },
+  { cat:'블루프린트', type: "객관식", q: "데이터 핀(색 원)의 색깔이 의미하는 것은?",
+    options: ["노드의 중요도", "값의 타입(자료형)", "노드가 속한 클래스", "에러 수준"],
+    answer: 1, explain: "핀 색은 자료형을 나타냅니다 — 초록=Float, 분홍=String, 파랑=Object 등." },
+  { cat:'블루프린트', type: "객관식", q: "블루프린트 수정 후 반영하려면 눌러야 하는 버튼은?",
+    options: ["Play", "Save", "Compile(컴파일)", "Build"],
+    answer: 2, explain: "Compile 버튼을 눌러야 수정한 그래프가 엔진에 반영됩니다." },
+  { cat:'블루프린트', type: "객관식", q: "한 입력 실행 핀에 연결할 수 있는 와이어 개수는?",
+    options: ["제한 없음", "최대 2개", "1개만", "3개까지"],
+    answer: 2, explain: "입력 실행 핀은 한 시점에 하나의 흐름만 받을 수 있어 와이어 1개만 연결됩니다." },
+  { cat:'블루프린트', type: "객관식", q: "변수의 값을 읽기만 하는(출력 핀만 있는) 노드는?",
+    options: ["Set 노드", "Get 노드", "Branch 노드", "Cast 노드"],
+    answer: 1, explain: "Get 노드는 변수 값을 읽어 출력 핀으로 내보냅니다. 실행 핀이 없어요." },
+
+  // ── C++ ──
+  { cat:'C++', type: "코드 보고 맞히기", code: `#include &lt;iostream&gt;\n#include "Items/Weapon.h"`,
+    q: "두 #include의 꺾쇠와 큰따옴표 차이는?",
+    options: ["꺾쇠는 내 프로젝트 파일, 큰따옴표는 시스템 파일", "둘은 완전히 동일하며 취향 차이일 뿐", "꺾쇠는 시스템·엔진 기본 파일, 큰따옴표는 내 프로젝트 파일", "큰따옴표는 .cpp만, 꺾쇠는 .h만 가져온다"],
+    answer: 2, explain: "꺾쇠 < >는 표준 라이브러리·엔진 기본 제공 파일을, 큰따옴표 \" \"는 내 프로젝트 안의 파일을 찾을 때 씁니다." },
+  { cat:'C++', type: "객관식", q: ".h 파일에 주로 들어가는 것은?",
+    options: ["함수가 실제로 어떻게 동작하는지(구현)", "무엇이 있는지에 대한 선언(설계도)", "컴파일된 기계어", "블루프린트 에셋 데이터"],
+    answer: 1, explain: ".h(헤더)는 '무엇이 있는지' 선언만 적는 메뉴판이고, 실제 동작(구현)은 .cpp에 적습니다." },
+  { cat:'C++', type: "객관식", q: ".h와 .cpp를 분리하면 얻는 이점이 아닌 것은?",
+    options: ["구현만 고치면 그 파일만 다시 컴파일 → 빌드가 빨라짐", "다른 코드는 선언(메뉴판)만 알면 됨", "설계도와 구현이 깔끔히 분리됨", "프로그램 실행 속도가 항상 2배 빨라짐"],
+    answer: 3, explain: "분리는 컴파일 효율과 코드 가독성·재사용을 위한 것이지, 실행 속도를 2배로 만들어주는 것은 아닙니다." },
+  { cat:'C++', type: "코드 보고 맞히기", code: `<span class="mac">UPROPERTY(EditAnywhere)</span>\nint32 Ammo;`,
+    q: "여기서 UPROPERTY 매크로의 역할은?",
+    options: ["Ammo 변수를 에디터에서 보고 수정할 수 있게 노출한다", "Ammo의 값을 0으로 강제 초기화한다", "Ammo를 다른 .cpp 파일로 옮긴다", "컴파일 속도를 빠르게 만든다"],
+    answer: 0, explain: "UPROPERTY는 변수에 붙여 에디터·블루프린트에 노출하는 매크로입니다. EditAnywhere는 에디터에서 값 수정을 허용합니다." },
+  { cat:'C++', type: "코드 보고 맞히기", code: `<span class="mac">UFUNCTION(BlueprintCallable)</span>\n<span class="kw">void</span> Fire();`,
+    q: "BlueprintCallable 지정자가 의미하는 것은?",
+    options: ["Fire 함수를 C++에서만 호출 가능하게 막는다", "Fire 함수를 블루프린트에서 노드로 호출할 수 있게 한다", "Fire 함수를 자동으로 매 프레임 실행한다", "Fire 함수의 구현을 삭제한다"],
+    answer: 1, explain: "BlueprintCallable은 해당 함수를 블루프린트 그래프에서 노드로 끌어다 호출할 수 있게 노출합니다." },
+  { cat:'C++', type: "객관식", q: "디자이너에게 연출 구현을 맡기고 싶을 때(C++엔 선언만) 쓰는 UFUNCTION 지정자는?",
+    options: ["BlueprintPure", "EditAnywhere", "BlueprintImplementableEvent", "VisibleAnywhere"],
+    answer: 2, explain: "BlueprintImplementableEvent는 C++에 이름만 선언하고 실제 동작은 블루프린트에서 구현하게 합니다." },
+  { cat:'C++', type: "코드 보고 맞히기", code: `<span class="kw">class</span> AWeapon : <span class="kw">public</span> AActor`,
+    q: "클래스 이름 앞 'A'가 의미하는 것은?",
+    options: ["추상(Abstract) 클래스라는 뜻", "알파벳 순서상 첫 글자일 뿐", "Actor 계열 — 월드에 직접 배치 가능한 물체", "API 전용 클래스라는 뜻"],
+    answer: 2, explain: "A는 Actor 계열 접두사로, 월드(레벨)에 직접 배치할 수 있는 물체임을 나타냅니다." },
+  { cat:'C++', type: "객관식", q: "접두사 'U'(예: UActorComponent)에 대한 설명으로 옳은 것은?",
+    options: ["Unreal의 약자이며 월드에 직접 놓는 물체다", "UObject 자손이며 보통 다른 것에 붙여 쓰는 부품·UI·에셋이다", "Utility(유틸리티)의 약자다", "사용자 정의(User) 클래스에만 붙는다"],
+    answer: 1, explain: "U는 최상위 부모 UObject에서 따온 글자입니다. 월드에 혼자 못 놓고 무언가에 붙여 쓰는 것(컴포넌트 등)에 붙습니다." },
+  { cat:'C++', type: "객관식", q: "FVector, FString처럼 'F'가 붙는 것은 무엇을 나타내나?",
+    options: ["월드에 배치 가능한 액터", "인터페이스", "가벼운 데이터 묶음(구조체) — 언리얼이 관리하지 않는 타입", "함수(Function) 전용 클래스"],
+    answer: 2, explain: "F는 좌표·문자열 같은 가벼운 데이터 묶음(UObject 자손이 아닌 일반 구조체)에 붙는 접두사입니다." }
+];
+
+/* =============================================================================
+   💾 PROGRESS — localStorage 기반 학습 상태 저장
+   ============================================================================= */
+const STORAGE_KEY = 'ue-codex-progress-v2';
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { concepts: [], blueprints: [], cpp: [], lastQuiz: null };
+}
+function saveProgress() { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
+let progress = loadProgress();
+
+function isDone(category, id) { return progress[category].includes(id); }
+function toggleDone(category, id) {
+  const arr = progress[category];
+  const idx = arr.indexOf(id);
+  if (idx >= 0) arr.splice(idx, 1);
+  else arr.push(id);
+  saveProgress();
+  renderStats();
+}
+
+/* =============================================================================
+   🧭 2-LEVEL NAVIGATION — subject(bp|cpp) × mode(concepts|practice|quiz)
+   ============================================================================= */
+let _subject = 'dashboard';  // 'dashboard' | 'bp' | 'cpp'
+let _mode = 'concepts';      // 'concepts' | 'practice' | 'quiz'
+const subjectCats = { bp: ['공통','블루프린트'], cpp: ['공통','C++'] };
+const subjectLabel = { bp: '블루프린트', cpp: 'C++' };
+const subNav = document.getElementById('sub-nav');
+
+function applyNav() {
+  // 상위 탭 활성
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.subject === _subject));
+  // 하위 네비 표시/숨기기
+  subNav.style.display = (_subject === 'dashboard') ? 'none' : 'flex';
+  subNav.querySelectorAll('.sub-tab').forEach(s => s.classList.toggle('active', s.dataset.mode === _mode));
+  // 모든 view 비활성
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  // 어떤 view를 보여줄지
+  if (_subject === 'dashboard') {
+    document.getElementById('view-dashboard').classList.add('active');
+  } else if (_mode === 'concepts') {
+    document.getElementById('view-concepts').classList.add('active');
+    document.getElementById('concepts-title').textContent = subjectLabel[_subject] + ' — 개념 정리';
+    _conceptCat = _subject;
+    initConceptSearchEvents();  // 이벤트 바인딩 (중복 방지 내장)
+    // sessionStorage에 저장된 검색어 복원 (새로고침/뒤로가기 시)
+    if (!_searchActive) {
+      const saved = sessionStorage.getItem(SEARCH_KEY);
+      if (saved) {
+        const input = document.getElementById('concept-search-input');
+        const btnS  = document.getElementById('btn-search');
+        if (input) input.value = saved;
+        if (btnS)  btnS.disabled = false;
+        _searchQuery  = saved;
+        _searchActive = true;
+      }
+    }
+    renderConcepts();
+  } else if (_mode === 'practice') {
+    document.getElementById(_subject === 'bp' ? 'view-blueprint' : 'view-cpp').classList.add('active');
+  } else if (_mode === 'quiz') {
+    document.getElementById('view-quiz').classList.add('active');
+    document.getElementById('quiz-title').textContent = subjectLabel[_subject] + ' — 퀴즈';
+    initQuiz();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setSubject(s, m) {
+  clearConceptSearch();   // 탭 전환 시 검색 초기화
+  _subject = s; _mode = m || 'concepts'; applyNav();
+}
+function setMode(m) { _mode = m; applyNav(); }
+
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => setSubject(tab.dataset.subject));
+});
+subNav.querySelectorAll('.sub-tab').forEach(st => {
+  st.addEventListener('click', () => setMode(st.dataset.mode));
+});
+document.querySelectorAll('.quick-action[data-go-subject]').forEach(qa => {
+  qa.addEventListener('click', () => setSubject(qa.dataset.goSubject));
+});
+
+/* =============================================================================
+   📊 DASHBOARD STATS
+   ============================================================================= */
+function renderStats() {
+  const grid = document.getElementById('stats-grid');
+  const bpConcepts = concepts.filter(c => subjectCats.bp.includes(c.cat));
+  const cppConcepts = concepts.filter(c => subjectCats.cpp.includes(c.cat));
+  const data = [
+    { label: 'BP 개념', count: progress.concepts.filter(id => bpConcepts.some(c=>c.id===id)).length, total: bpConcepts.length, icon: '📚', cls: 's1' },
+    { label: 'BP 실습', count: progress.blueprints.length, total: blueprintExamples.length, icon: '🎨', cls: 's2' },
+    { label: 'C++ 개념', count: progress.concepts.filter(id => cppConcepts.some(c=>c.id===id)).length, total: cppConcepts.length, icon: '📚', cls: 's1' },
+    { label: 'C++ 실습', count: progress.cpp.length, total: cppExamples.length, icon: '💻', cls: 's3' },
+  ];
+  grid.innerHTML = data.map(d => {
+    const pct = (typeof d.count === 'number' && d.total > 0) ? Math.round(d.count / d.total * 100) : 0;
+    return `
+      <div class="stat-card ${d.cls}">
+        <div class="stat-icon">${d.icon}</div>
+        <div class="stat-value">${d.count}<span class="total"> / ${d.total}</span></div>
+        <div class="stat-label">${d.label}</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* =============================================================================
+   📚 CONCEPTS RENDER — subject('bp'|'cpp')에 따라 해당+공통 개념만 표시
+   ============================================================================= */
+let _conceptCat   = 'bp';
+let _searchQuery  = '';    // 마지막으로 실행된 검색어
+let _searchActive = false; // 검색 결과 표시 중 여부
+const SEARCH_KEY  = 'ue-codex-search-query';
+
+function _escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function _highlightTitle(title, query) {
+  if (!query) return title;
+  return title.replace(
+    new RegExp(`(${_escapeRegex(query)})`, 'gi'),
+    '<mark class="search-highlight">$1</mark>'
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   코드 블록 토글 헬퍼
+   stripComments  : <span class="cm"> 주석 제거 → 깔끔한 코드만 남김
+   wrapWithToggle : pre 블록을 "주석 포함 / 코드만" 두 뷰로 감쌈
+────────────────────────────────────────────────────────────────────── */
+function stripComments(html) {
+  let r = html.replace(/<span class="cm">[\s\S]*?<\/span>/g, '');
+  const lines = r.split('\n');
+  const out = [];
+  let prevBlank = false;
+  for (const line of lines) {
+    const t = line.trimEnd();
+    const blank = t.trim() === '';
+    if (blank) {
+      if (!prevBlank && out.length > 0) out.push('');
+      prevBlank = true;
+    } else {
+      out.push(t);
+      prevBlank = false;
+    }
+  }
+  while (out.length && out[0] === '') out.shift();
+  while (out.length && out[out.length - 1] === '') out.pop();
+  return out.join('\n');
+}
+
+function wrapWithToggle(body) {
+  return body.replace(/<pre>([\s\S]*?)<\/pre>/g, (_, inner) => {
+    const clean = stripComments(inner);
+    return `<div class="code-toggle">
+  <div class="code-tabs">
+    <span class="code-tabs-label">보기</span>
+    <button class="code-tab active" data-v="0">주석 포함</button>
+    <button class="code-tab" data-v="1">코드만</button>
+  </div>
+  <pre class="code-view">${inner}</pre>
+  <pre class="code-view" hidden>${clean}</pre>
+</div>`;
+  });
+}
+
+function renderConcepts() {
+  const el = document.getElementById('cards');
+  const cats = subjectCats[_conceptCat] || ['공통','블루프린트','C++'];
+  let items = concepts.filter(c => cats.includes(c.cat));
+
+  // 검색 필터 — 제목 또는 keywords에 검색어 포함 여부 (부분 일치, 대소문자 무시)
+  if (_searchActive && _searchQuery) {
+    const q = _searchQuery.toLowerCase();
+    items = items.filter(c => {
+      const inTitle = c.title.toLowerCase().includes(q);
+      const inKeys  = Array.isArray(c.keywords) && c.keywords.some(k => k.toLowerCase().includes(q));
+      return inTitle || inKeys;
+    });
+  }
+
+  el.innerHTML = items.map(c => {
+    // 제목 하이라이트 (검색 중일 때만)
+    const titleHtml = (_searchActive && _searchQuery)
+      ? _highlightTitle(c.title, _searchQuery)
+      : c.title;
+    return `
+    <div class="card" data-id="${c.id}">
+      <div class="card-head">
+        <span class="card-tag ${c.tagClass}">${c.tag}</span>
+        <span class="card-title">${titleHtml}</span>
+        <span class="card-check ${isDone('concepts', c.id) ? 'done' : ''}" data-toggle="${c.id}">✓</span>
+        <span class="card-chevron">▶</span>
+      </div>
+      <div class="card-body"><div class="card-body-inner">${wrapWithToggle(c.body)}</div></div>
+    </div>
+  `;
+  }).join('') || `<p style="color:var(--text-faint);text-align:center;padding:40px 0;">'<strong>${_searchQuery}</strong>'에 해당하는 개념이 없어요. 다른 키워드로 시도해보세요.</p>`;
+
+  el.querySelectorAll('.card').forEach(card => {
+    const head = card.querySelector('.card-head');
+    const check = card.querySelector('.card-check');
+    head.addEventListener('click', (e) => {
+      if (e.target.closest('.card-check')) return;
+      card.classList.toggle('open');
+    });
+    check.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDone('concepts', card.dataset.id);
+      check.classList.toggle('done');
+    });
+  });
+
+  // 검색 결과 개수 UI 동기화
+  _syncSearchUI(items.length);
+}
+
+/* ── 검색 함수들 ─────────────────────────────────────────────────────────── */
+
+function _syncSearchUI(count) {
+  const btnReset   = document.getElementById('btn-search-reset');
+  const resultSpan = document.getElementById('search-result-count');
+  if (!btnReset) return;
+  if (_searchActive) {
+    btnReset.style.display = '';
+    resultSpan.textContent = `결과: ${count}개`;
+  } else {
+    btnReset.style.display = 'none';
+    resultSpan.textContent = '';
+  }
+}
+
+function executeSearch() {
+  const input = document.getElementById('concept-search-input');
+  const q = input ? input.value.trim() : '';
+  if (!q) return;
+  _searchQuery  = q;
+  _searchActive = true;
+  sessionStorage.setItem(SEARCH_KEY, q);
+  renderConcepts();
+}
+
+function resetSearch() {
+  _searchQuery  = '';
+  _searchActive = false;
+  sessionStorage.removeItem(SEARCH_KEY);
+  const input  = document.getElementById('concept-search-input');
+  const btnS   = document.getElementById('btn-search');
+  if (input) { input.value = ''; }
+  if (btnS)  { btnS.disabled = true; }
+  renderConcepts();
+}
+
+function clearConceptSearch() {
+  // 탭 전환 시 검색 상태 초기화 (UI + 상태 모두)
+  _searchQuery  = '';
+  _searchActive = false;
+  const input  = document.getElementById('concept-search-input');
+  const btnS   = document.getElementById('btn-search');
+  const btnR   = document.getElementById('btn-search-reset');
+  const span   = document.getElementById('search-result-count');
+  if (input) input.value = '';
+  if (btnS)  btnS.disabled = true;
+  if (btnR)  btnR.style.display = 'none';
+  if (span)  span.textContent = '';
+}
+
+function initConceptSearchEvents() {
+  const input  = document.getElementById('concept-search-input');
+  const btnS   = document.getElementById('btn-search');
+  const btnR   = document.getElementById('btn-search-reset');
+  if (!input || input._searchBound) return;  // 중복 바인딩 방지
+  input._searchBound = true;
+
+  input.addEventListener('input', () => {
+    btnS.disabled = input.value.trim() === '';
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (input.value.trim()) {
+      executeSearch();          // 텍스트 있음 → 검색 실행
+    } else if (_searchActive) {
+      resetSearch();            // 텍스트 없음 + 검색 중 → 초기화
+    }
+  });
+  btnS.addEventListener('click', () => { if (!btnS.disabled) executeSearch(); });
+  btnR.addEventListener('click', () => resetSearch());
+}
+
+/* 코드 토글 탭 — 전역 위임 (renderConcepts 재렌더 후에도 동작) */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.code-tab');
+  if (!btn) return;
+  e.stopPropagation();                          // 카드 열림/닫힘 방지
+  const toggle = btn.closest('.code-toggle');
+  const v = parseInt(btn.dataset.v, 10);       // 0 = 주석 포함, 1 = 코드만
+  toggle.querySelectorAll('.code-tab').forEach((t, i) => t.classList.toggle('active', i === v));
+  toggle.querySelectorAll('.code-view').forEach((view, i) => { view.hidden = i !== v; });
+});
+
+/* =============================================================================
+   🔌 BLUEPRINT GRAPH RENDERER — 데이터를 실제 BP 노드 그래프(SVG)로 그림
+   ============================================================================= */
+const PIN_COLORS = {
+  exec: '#ffffff',
+  bool:  '#9a1f1f',
+  byte:  '#0d6b5e',
+  int:   '#1fd6c1',
+  float: '#9ccc3c',
+  string:'#e84bc9',
+  name:  '#c44ad6',
+  text:  '#d36ad6',
+  vector:'#f0b860',
+  object:'#3a9bdc',
+  bp:    '#3a9bdc'
+};
+/* 인터랙티브 블루프린트 에디터
+   - 노드 헤더 드래그: 이동 (다중 선택 시 함께 이동)
+   - 좌클릭 빈 영역 드래그: 마퀴(박스) 다중 선택
+   - 우클릭 드래그: 화면 패닝
+   - 마우스 휠: 커서 기준 확대/축소
+   - 핀에서 드래그: 와이어 연결 / 와이어 클릭: 삭제 / 값 칸: 직접 수정
+*/
+const WORLD_W = 4000, WORLD_H = 3000;
+const ZOOM_MIN = 0.4, ZOOM_MAX = 2.6;
+let _bpEditorSeq = 0;
+
+class BlueprintEditor {
+  constructor(host, graph) {
+    this.uid = 'bpe' + (++_bpEditorSeq);   // 인스턴스마다 고유 (SVG 필터 id 충돌 방지)
+    this.host = host;
+    this.graph = graph;
+    this.original = JSON.parse(JSON.stringify(graph));
+    this.pins = {};
+    this.nodeById = {};
+    this.selection = new Set();
+    this.panX = 16; this.panY = 14; this.zoom = 1;
+    this.linking = null; this.nodeDrag = null; this.pan = null; this.marquee = null;
+    this.hover = null; this.cursorWorld = null; this.snapTarget = null; this._baseConnections = null;
+    this.build();
+    requestAnimationFrame(() => { this.applyTransform(); this.redraw(); });
+    window.addEventListener('resize', () => this.redraw());
+  }
+
+  build() {
+    this.host.classList.add('bp-editor');
+    this.host.innerHTML = `
+      <div class="bp-toolbar">
+        <button class="bpe-btn bpe-reset" type="button">↺ 노드 초기화</button>
+        <button class="bpe-btn bpe-resetview" type="button">⊡ 화면 맞춤</button>
+        <span class="bpe-zoom">100%</span>
+        <span class="bpe-hint">좌드래그=박스선택 · 우드래그=화면이동 · 휠=확대/축소 · 핀 드래그=연결</span>
+      </div>
+      <div class="bp-stage">
+        <div class="bp-world">
+          <svg class="bp-wire-layer" width="${WORLD_W}" height="${WORLD_H}" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="bp-node-layer"></div>
+        </div>
+        <div class="bp-marquee" hidden></div>
+      </div>
+      <div class="bp-legend">
+        <span><span class="sw" style="background:#fff"></span>실행 흐름</span>
+        <span><span class="sw" style="background:${PIN_COLORS.float};border-radius:50%"></span>Float</span>
+        <span><span class="sw" style="background:${PIN_COLORS.string};border-radius:50%"></span>String</span>
+        <span><span class="sw" style="background:${PIN_COLORS.object};border-radius:50%"></span>Object</span>
+      </div>`;
+    this.stage = this.host.querySelector('.bp-stage');
+    this.world = this.host.querySelector('.bp-world');
+    this.svg = this.host.querySelector('.bp-wire-layer');
+    this.layer = this.host.querySelector('.bp-node-layer');
+    this.marqueeEl = this.host.querySelector('.bp-marquee');
+    this.zoomLabel = this.host.querySelector('.bpe-zoom');
+
+    this.host.querySelector('.bpe-reset').addEventListener('click', () => this.reset());
+    this.host.querySelector('.bpe-resetview').addEventListener('click', () => this.resetView());
+
+    this.stage.addEventListener('pointerdown', (e) => this.onStageDown(e));
+    this.stage.addEventListener('contextmenu', (e) => e.preventDefault());
+    this.stage.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
+    document.addEventListener('pointermove', (e) => this.onMove(e));
+    document.addEventListener('pointerup', (e) => this.onUp(e));
+    document.addEventListener('pointercancel', (e) => this.onUp(e));
+
+    this.renderNodes();
+  }
+
+  applyTransform() {
+    this.world.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
+    this.zoomLabel.textContent = Math.round(this.zoom * 100) + '%';
+  }
+  stageXY(e) {
+    const r = this.stage.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  toWorld(e) {
+    const s = this.stageXY(e);
+    return { x: (s.x - this.panX) / this.zoom, y: (s.y - this.panY) / this.zoom };
+  }
+
+  makePin(node, pin, side) {
+    const el = document.createElement('span');
+    el.className = `bp-pin ${pin.type === 'exec' ? 'pin-exec' : 'pin-data'}`;
+    el.style.setProperty('--c', PIN_COLORS[pin.type] || '#aaa');
+    el.dataset.type = pin.type;
+    el.dataset.node = node.id;
+    el.dataset.pin = pin.id;
+    el.dataset.side = side;
+    el.innerHTML = '<span class="dot"></span>';
+    el.addEventListener('pointerdown', (e) => this.startLink(e, node, pin, side, el));
+    el.addEventListener('pointerenter', () => {
+      this.hover = { node, pin, side, type: pin.type, el };
+      if (this.linking) el.classList.add('pin-target');
+    });
+    el.addEventListener('pointerleave', () => {
+      if (this.hover && this.hover.el === el) this.hover = null;
+      el.classList.remove('pin-target');
+    });
+    this.pins[`${node.id}|${pin.id}|${side}`] = el;
+    return el;
+  }
+
+  pinAtPoint(x, y) {
+    const t = document.elementFromPoint(x, y);
+    const el = t && t.closest ? t.closest('.bp-pin') : null;
+    if (!el) return null;
+    return { node: { id: el.dataset.node }, pin: { id: el.dataset.pin }, side: el.dataset.side, type: el.dataset.type, el };
+  }
+
+  // 커서에서 가장 가까운 '연결 가능한' 핀을 거리로 찾음 (히트테스트 비의존)
+  findSnapPin(cx, cy) {
+    const link = this.linking;
+    if (!link) return null;
+    let best = null, bestD = 52;   // 스냅 반경(px) — 넉넉하게
+    for (const key in this.pins) {
+      const el = this.pins[key];
+      if (el.dataset.side === link.side) continue;       // 반대쪽 핀이어야 함
+      if (el.dataset.node === link.node.id) continue;    // 같은 노드 제외
+      const aExec = link.type === 'exec', bExec = el.dataset.type === 'exec';
+      if (aExec !== bExec) continue;                     // 실행↔실행만
+      if (!aExec && link.type !== el.dataset.type) continue; // 데이터는 같은 타입만
+      const r = el.getBoundingClientRect();
+      const d = Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy);
+      if (d < bestD) { bestD = d; best = { node: { id: el.dataset.node }, pin: { id: el.dataset.pin }, side: el.dataset.side, type: el.dataset.type, el }; }
+    }
+    return best;
+  }
+
+  renderNodes() {
+    this.layer.innerHTML = '';
+    this.pins = {}; this.nodeById = {};
+    this.graph.nodes.forEach(node => {
+      this.nodeById[node.id] = node;
+      const div = document.createElement('div');
+      div.className = 'bp-node ' + node.type;
+      div.style.left = node.x + 'px';
+      div.style.top = node.y + 'px';
+      if (node.w) div.style.width = node.w + 'px';
+
+      const header = document.createElement('div');
+      header.className = 'bp-node-header';
+      header.innerHTML = `<span class="bp-node-dot"></span>${node.title}`;
+      header.addEventListener('pointerdown', (e) => this.startNodeDrag(e, node, div));
+      div.appendChild(header);
+
+      const rows = document.createElement('div');
+      rows.className = 'bp-node-rows';
+      node.inputs.forEach(pin => {
+        const row = document.createElement('div'); row.className = 'bp-row in';
+        row.appendChild(this.makePin(node, pin, 'in'));
+        if (pin.label) { const l = document.createElement('span'); l.className = 'bp-pin-label'; l.textContent = pin.label; row.appendChild(l); }
+        if (pin.value !== undefined) {
+          const inp = document.createElement('input');
+          inp.className = 'bp-val'; inp.type = 'text'; inp.value = pin.value;
+          inp.addEventListener('pointerdown', e => e.stopPropagation());
+          inp.addEventListener('input', () => { pin.value = inp.value; });
+          row.appendChild(inp);
+        }
+        rows.appendChild(row);
+      });
+      node.outputs.forEach(pin => {
+        const row = document.createElement('div'); row.className = 'bp-row out';
+        if (pin.label) { const l = document.createElement('span'); l.className = 'bp-pin-label'; l.textContent = pin.label; row.appendChild(l); }
+        row.appendChild(this.makePin(node, pin, 'out'));
+        rows.appendChild(row);
+      });
+      div.appendChild(rows);
+      this.layer.appendChild(div);
+      node._el = div;
+    });
+    this.updateSelectionStyles();
+  }
+
+  pinWorld(node, pinEl) {
+    const nr = node._el.getBoundingClientRect();
+    const pr = pinEl.getBoundingClientRect();
+    const ox = (pr.left + pr.width / 2 - nr.left) / this.zoom;
+    const oy = (pr.top + pr.height / 2 - nr.top) / this.zoom;
+    return { x: node.x + ox, y: node.y + oy };
+  }
+
+  /* ---- 노드 드래그 ---- */
+  startNodeDrag(e, node, div) {
+    if (e.button !== 0) return;           // 우클릭은 패닝으로 전달
+    e.stopPropagation();
+    if (!this.selection.has(node.id)) this.setSelection([node.id]);
+    const p = this.toWorld(e);
+    this.nodeDrag = {
+      startX: p.x, startY: p.y,
+      items: [...this.selection].map(id => { const n = this.nodeById[id]; return { n, ox: n.x, oy: n.y }; })
+    };
+  }
+
+  /* ---- 핀 연결 ---- */
+  startLink(e, node, pin, side, el) {
+    if (e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    // 포인터를 캡처해 드래그 도중 커서가 어디로 가든 pointerup이 반드시 전달되게 함
+    this._captureEl = el; this._pointerId = e.pointerId;
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    if (side === 'in') {
+      const idx = this.graph.connections.findIndex(c => c.to[0] === node.id && c.to[1] === pin.id);
+      if (idx >= 0) {
+        const conn = this.graph.connections[idx];
+        this.graph.connections.splice(idx, 1);
+        const outEl = this.pins[`${conn.from[0]}|${conn.from[1]}|out`];
+        this.linking = { node: { id: conn.from[0] }, pin: { id: conn.from[1] }, side: 'out', type: outEl.dataset.type, el: outEl };
+        this._baseConnections = this.graph.connections.slice();   // 드래그 시작 시점의 연결 스냅샷
+        this.cursorWorld = this.toWorld(e); this.redraw(); return;
+      }
+    }
+    this.linking = { node, pin, side, type: pin.type, el };
+    this._baseConnections = this.graph.connections.slice();       // 드래그 시작 시점의 연결 스냅샷
+    this.cursorWorld = this.toWorld(e); this.redraw();
+  }
+
+  // 드래그 중 스냅 대상이 있으면 연결을 즉시 graph에 반영(라이브 커밋)
+  updateLiveConnection(snap) {
+    if (!this.linking) return;
+    let conns = (this._baseConnections || this.graph.connections).slice();
+    if (snap) {
+      const out = this.linking.side === 'out' ? this.linking : snap;
+      const inp = this.linking.side === 'in' ? this.linking : snap;
+      conns = conns.filter(c => !(c.to[0] === inp.node.id && c.to[1] === inp.pin.id)); // 입력은 1개만
+      conns.push({ from: [out.node.id, out.pin.id], to: [inp.node.id, inp.pin.id] });
+    }
+    this.graph.connections = conns;
+  }
+
+  /* ---- 스테이지 누름: 패닝 / 마퀴 ---- */
+  onStageDown(e) {
+    if (e.button === 2 || e.button === 1) {     // 우클릭/휠클릭 = 패닝
+      e.preventDefault();
+      this.pan = { x0: e.clientX, y0: e.clientY, px: this.panX, py: this.panY };
+      this.stage.classList.add('panning');
+      return;
+    }
+    if (e.button === 0) {
+      if (e.target.tagName === 'path') return;  // 와이어 클릭은 삭제용
+      const s = this.stageXY(e);
+      this.marquee = { x0: s.x, y0: s.y };
+      this.marqueeEl.hidden = false;
+      this.marqueeEl.style.left = s.x + 'px'; this.marqueeEl.style.top = s.y + 'px';
+      this.marqueeEl.style.width = '0px'; this.marqueeEl.style.height = '0px';
+    }
+  }
+
+  onMove(e) {
+    if (this.pan) {
+      this.panX = this.pan.px + (e.clientX - this.pan.x0);
+      this.panY = this.pan.py + (e.clientY - this.pan.y0);
+      this.applyTransform();
+      return;
+    }
+    if (this.nodeDrag) {
+      const p = this.toWorld(e);
+      const dx = p.x - this.nodeDrag.startX, dy = p.y - this.nodeDrag.startY;
+      this.nodeDrag.items.forEach(it => {
+        const w = it.n._el.offsetWidth, h = it.n._el.offsetHeight;
+        it.n.x = Math.max(0, Math.min(it.ox + dx, WORLD_W - w));
+        it.n.y = Math.max(0, Math.min(it.oy + dy, WORLD_H - h));
+        it.n._el.style.left = it.n.x + 'px'; it.n._el.style.top = it.n.y + 'px';
+      });
+      this.redraw();
+      return;
+    }
+    if (this.marquee) {
+      const s = this.stageXY(e);
+      const x = Math.min(s.x, this.marquee.x0), y = Math.min(s.y, this.marquee.y0);
+      const w = Math.abs(s.x - this.marquee.x0), h = Math.abs(s.y - this.marquee.y0);
+      Object.assign(this.marqueeEl.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+      return;
+    }
+    if (this.linking) {
+      this.cursorWorld = this.toWorld(e);
+      Object.values(this.pins).forEach(p => p.classList.remove('pin-target'));
+      this.snapTarget = this.findSnapPin(e.clientX, e.clientY);
+      if (this.snapTarget) this.snapTarget.el.classList.add('pin-target');
+      this.updateLiveConnection(this.snapTarget);   // 스냅되면 연결을 즉시 graph에 반영
+      this.redraw();
+    }
+  }
+
+  onUp(e) {
+    if (this.pan) { this.pan = null; this.stage.classList.remove('panning'); }
+    if (this.nodeDrag) { this.nodeDrag = null; }
+    if (this.marquee) {
+      const s = this.stageXY(e);
+      const w = Math.abs(s.x - this.marquee.x0), h = Math.abs(s.y - this.marquee.y0);
+      if (w < 4 && h < 4) { this.setSelection([]); }
+      else {
+        const rect = { x: Math.min(s.x, this.marquee.x0), y: Math.min(s.y, this.marquee.y0), w, h };
+        this.setSelection(this.nodesInMarquee(rect));
+      }
+      this.marquee = null; this.marqueeEl.hidden = true;
+    }
+    if (this.linking) {
+      // 연결은 onMove(드래그 중)에 이미 graph에 반영됨. 마지막으로 한 번 더 확정 시도 후 상태 정리.
+      const snap = this.findSnapPin(e.clientX, e.clientY) || this.snapTarget;
+      this.updateLiveConnection(snap);
+      Object.values(this.pins).forEach(p => p.classList.remove('pin-target'));
+      if (this._captureEl && this._pointerId != null) {
+        try { this._captureEl.releasePointerCapture(this._pointerId); } catch (_) {}
+      }
+      this._captureEl = null; this._pointerId = null;
+      this._dragEndedAt = (window.performance ? performance.now() : Date.now()); // 드래그 직후 클릭 삭제 방지
+      this.snapTarget = null; this.linking = null; this._baseConnections = null; this.redraw();
+    }
+  }
+
+  onWheel(e) {
+    e.preventDefault();
+    const s = this.stageXY(e);
+    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+    const nz = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, this.zoom * factor));
+    const wx = (s.x - this.panX) / this.zoom, wy = (s.y - this.panY) / this.zoom;
+    this.panX = s.x - wx * nz; this.panY = s.y - wy * nz; this.zoom = nz;
+    this.applyTransform();
+  }
+
+  nodesInMarquee(rect) {
+    const ids = [];
+    this.graph.nodes.forEach(n => {
+      const left = n.x * this.zoom + this.panX;
+      const top = n.y * this.zoom + this.panY;
+      const w = n._el.offsetWidth * this.zoom, h = n._el.offsetHeight * this.zoom;
+      const hit = !(left > rect.x + rect.w || left + w < rect.x || top > rect.y + rect.h || top + h < rect.y);
+      if (hit) ids.push(n.id);
+    });
+    return ids;
+  }
+
+  setSelection(ids) { this.selection = new Set(ids); this.updateSelectionStyles(); }
+  updateSelectionStyles() {
+    this.graph.nodes.forEach(n => {
+      if (n._el) n._el.classList.toggle('selected', this.selection.has(n.id));
+    });
+  }
+
+  tryConnect(src, dst) {
+    if (src.side === dst.side) return;
+    if (src.node.id === dst.node.id) return;
+    const aExec = src.type === 'exec', bExec = dst.type === 'exec';
+    if (aExec !== bExec) return;
+    if (!aExec && src.type !== dst.type) return;
+    const out = src.side === 'out' ? src : dst;
+    const inp = src.side === 'in' ? src : dst;
+    this.graph.connections = this.graph.connections.filter(c => !(c.to[0] === inp.node.id && c.to[1] === inp.pin.id));
+    this.graph.connections.push({ from: [out.node.id, out.pin.id], to: [inp.node.id, inp.pin.id] });
+  }
+
+  redraw() {
+    let paths = '';
+    this.graph.connections.forEach((c, i) => {
+      const an = this.nodeById[c.from[0]], bn = this.nodeById[c.to[0]];
+      const aEl = this.pins[`${c.from[0]}|${c.from[1]}|out`];
+      const bEl = this.pins[`${c.to[0]}|${c.to[1]}|in`];
+      if (!an || !bn || !aEl || !bEl) return;
+      const a = this.pinWorld(an, aEl), b = this.pinWorld(bn, bEl);
+      const type = aEl.dataset.type;
+      const color = type === 'exec' ? '#f4f4f4' : (PIN_COLORS[type] || '#aaa');
+      const dx = Math.max(50, Math.abs(b.x - a.x) * 0.5);
+      const d = `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+      paths += `<path class="wire-hit" data-i="${i}" d="${d}" fill="none" stroke="transparent" stroke-width="16"/>`;
+      paths += `<path class="wire-glow" d="${d}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" opacity="0.22"/>`;
+      paths += `<path class="wire" d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>`;
+    });
+    if (this.linking && this.cursorWorld && !this.snapTarget) {
+      // 스냅 안 됐을 때만 커서를 따라가는 점선 임시 와이어 (스냅되면 실제 연결 와이어가 그려짐)
+      const ln = this.nodeById[this.linking.node.id];
+      const a = this.pinWorld(ln, this.linking.el);
+      const b = this.cursorWorld;
+      const type = this.linking.type;
+      const color = type === 'exec' ? '#f4f4f4' : (PIN_COLORS[type] || '#aaa');
+      const dx = Math.max(50, Math.abs(b.x - a.x) * 0.5);
+      const d = this.linking.side === 'out'
+        ? `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`
+        : `M ${b.x} ${b.y} C ${b.x + dx} ${b.y}, ${a.x - dx} ${a.y}, ${a.x} ${a.y}`;
+      paths += `<path class="wire" d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>`;
+    }
+    // defs는 유지, 경로만 갱신
+    const defs = this.svg.querySelector('defs');
+    this.svg.innerHTML = '';
+    if (defs) this.svg.appendChild(defs);
+    this.svg.insertAdjacentHTML('beforeend', paths);
+    this.svg.querySelectorAll('.wire-hit').forEach(p => {
+      p.addEventListener('click', () => {
+        const now = (window.performance ? performance.now() : Date.now());
+        if (now - (this._dragEndedAt || 0) < 400) return;  // 연결 직후 따라오는 클릭은 무시
+        this.graph.connections.splice(+p.dataset.i, 1);
+        this.redraw();
+      });
+    });
+    this.refreshPins();
+  }
+
+  refreshPins() {
+    Object.values(this.pins).forEach(el => el.classList.remove('connected'));
+    this.graph.connections.forEach(c => {
+      const a = this.pins[`${c.from[0]}|${c.from[1]}|out`]; if (a) a.classList.add('connected');
+      const b = this.pins[`${c.to[0]}|${c.to[1]}|in`]; if (b) b.classList.add('connected');
+    });
+  }
+
+  reset() {
+    this.graph = JSON.parse(JSON.stringify(this.original));
+    this.selection = new Set();
+    this.renderNodes();
+    this.redraw();
+  }
+  resetView() {
+    this.panX = 16; this.panY = 14; this.zoom = 1;
+    this.applyTransform();
+  }
+}
+
+/* =============================================================================
+   🎨 BLUEPRINT & 💻 C++ EXAMPLES RENDER
+   ============================================================================= */
+function renderExamples(listName, listEl, filterEl, exampleData, progressKey) {
+  const categories = ['전체', ...new Set(exampleData.map(e => e.category))];
+  let activeCat = '전체';
+
+  function renderList() {
+    const items = exampleData.filter(e => activeCat === '전체' || e.category === activeCat);
+    listEl.innerHTML = items.map(ex => {
+      const stars = '★'.repeat(ex.difficulty) + '☆'.repeat(3 - ex.difficulty);
+      const done = isDone(progressKey, ex.id);
+      const isBlueprint = progressKey === 'blueprints';
+
+      let solutionContent = '';
+      if (isBlueprint) {
+        solutionContent = `
+          <h4>인터랙티브 노드 그래프</h4>
+          <div class="bp-editor-host" data-ex="${ex.id}"></div>
+          <h4>단계별 따라하기</h4>
+          <ol class="bp-steps">${ex.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+          <h4>해설</h4>
+          <p>${ex.explain}</p>
+        `;
+      } else {
+        solutionContent = `
+          ${ex.files.map(f => `
+            <div class="code-label ${f.type === 'bp' ? 'bp' : ''}">
+              <span class="dot"></span> ${f.name}
+            </div>
+            <pre class="${f.type}">${f.code}</pre>
+          `).join('')}
+          <h4>해설</h4>
+          <p>${ex.explain}</p>
+        `;
+      }
+
+      return `
+        <div class="example-card" data-id="${ex.id}">
+          <div class="example-head">
+            <span class="difficulty">${stars}</span>
+            <div class="example-info">
+              <div class="example-title">${ex.title}</div>
+              <div class="example-meta">${ex.category.toUpperCase()}</div>
+            </div>
+            <span class="head-check ${done ? 'done' : ''}" data-toggle>✓</span>
+            <span class="example-chevron">▶</span>
+          </div>
+          <div class="example-body">
+            <div class="example-body-inner">
+              <div class="desc-block">${ex.desc}</div>
+              <div class="think-prompt">
+                <strong>💡 먼저 생각해보세요.</strong><br>
+                ${ex.hint}
+              </div>
+              <button class="reveal-btn" data-reveal>정답 보기 ↓</button>
+              <div class="solution">${solutionContent}</div>
+              <div class="mark-row">
+                <button class="mark-btn ${done ? 'done' : ''}" data-mark>
+                  ${done ? '✓ 학습 완료' : '학습 완료로 표시'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') || `<p style="color:var(--text-faint);text-align:center;padding:40px;">이 카테고리에 예제가 없어요.</p>`;
+
+    bindExampleEvents();
+  }
+
+  function bindExampleEvents() {
+    listEl.querySelectorAll('.example-card').forEach(card => {
+      const head = card.querySelector('.example-head');
+      const check = card.querySelector('[data-toggle]');
+      const reveal = card.querySelector('[data-reveal]');
+      const solution = card.querySelector('.solution');
+      const markBtn = card.querySelector('[data-mark]');
+
+      head.addEventListener('click', (e) => {
+        if (e.target.closest('[data-toggle]')) return;
+        card.classList.toggle('open');
+      });
+      check.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDone(progressKey, card.dataset.id);
+        check.classList.toggle('done');
+        markBtn.classList.toggle('done');
+        markBtn.textContent = check.classList.contains('done') ? '✓ 학습 완료' : '학습 완료로 표시';
+      });
+      reveal.addEventListener('click', () => {
+        solution.classList.add('show');
+        reveal.style.display = 'none';
+        const host = solution.querySelector('.bp-editor-host');
+        if (host && !host.dataset.init) {
+          host.dataset.init = '1';
+          const ex = exampleData.find(e => e.id === card.dataset.id);
+          if (ex && ex.graph) new BlueprintEditor(host, JSON.parse(JSON.stringify(ex.graph)));
+        }
+      });
+      markBtn.addEventListener('click', () => {
+        toggleDone(progressKey, card.dataset.id);
+        const done = markBtn.classList.toggle('done');
+        check.classList.toggle('done', done);
+        markBtn.textContent = done ? '✓ 학습 완료' : '학습 완료로 표시';
+      });
+    });
+  }
+
+  filterEl.innerHTML = categories.map(c =>
+    `<button class="cat-chip ${c === '전체' ? 'active' : ''}" data-cat="${c}">${c}</button>`
+  ).join('');
+  filterEl.querySelectorAll('.cat-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterEl.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCat = chip.dataset.cat;
+      renderList();
+    });
+  });
+
+  renderList();
+}
+
+/* =============================================================================
+   ✏️ QUIZ — subject에 따라 해당+공통 문제만 출제
+   ============================================================================= */
+let quizSet = [];
+let current = 0;
+let answers = [];
+const introEl = document.getElementById('quiz-intro');
+const runningEl = document.getElementById('quiz-running');
+const resultEl = document.getElementById('quiz-result');
+const qCard = document.getElementById('question-card');
+const fill = document.getElementById('progress-fill');
+const ptext = document.getElementById('progress-text');
+const nextBtn = document.getElementById('next-btn');
+const prevBtn = document.getElementById('prev-btn');
+
+function initQuiz() {
+  const cats = subjectCats[_subject] || ['공통','블루프린트','C++'];
+  quizSet = questions.filter(q => cats.includes(q.cat));
+  answers = new Array(quizSet.length).fill(null);
+  current = 0;
+  introEl.style.display = 'block';
+  runningEl.style.display = 'none';
+  resultEl.style.display = 'none'; resultEl.innerHTML = '';
+  document.querySelector('#quiz-intro p').textContent = `총 ${quizSet.length}문제. 답을 고르면 바로 채점되고 해설이 표시됩니다.`;
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  introEl.style.display = 'none';
+  runningEl.style.display = 'block';
+  current = 0; answers.fill(null);
+  renderQuestion();
+});
+
+function renderQuestion() {
+  const q = quizSet[current];
+  const chosen = answers[current];
+  const locked = chosen !== null;
+  fill.style.width = (current / quizSet.length * 100) + '%';
+  ptext.textContent = `문제 ${current + 1} / ${quizSet.length}`;
+  let html = `<div class="q-type">${q.type}</div><div class="q-text">${q.q}</div>`;
+  if (q.code) html += `<div class="q-code">${q.code.replace(/\n/g,'<br>')}</div>`;
+  html += `<div class="options">`;
+  const keys = ['A','B','C','D'];
+  q.options.forEach((opt, idx) => {
+    let cls = 'opt';
+    if (locked) { cls += ' locked'; if (idx===q.answer) cls+=' correct'; else if (idx===chosen) cls+=' wrong'; else cls+=' dim'; }
+    html += `<div class="${cls}" data-idx="${idx}"><span class="opt-key">${keys[idx]}</span><span>${opt}</span></div>`;
+  });
+  html += `</div><div class="explain ${locked?'show':''}"><strong>해설.</strong> ${q.explain}</div>`;
+  qCard.innerHTML = html;
+  if (!locked) {
+    qCard.querySelectorAll('.opt').forEach(o => {
+      o.addEventListener('click', () => { answers[current] = parseInt(o.dataset.idx); renderQuestion(); });
+    });
+  }
+  prevBtn.style.visibility = current === 0 ? 'hidden' : 'visible';
+  nextBtn.disabled = !locked;
+  nextBtn.textContent = current === quizSet.length - 1 ? '결과 보기 →' : '다음 →';
+}
+
+nextBtn.addEventListener('click', () => { if (current < quizSet.length - 1) { current++; renderQuestion(); } else showResult(); });
+prevBtn.addEventListener('click', () => { if (current > 0) { current--; renderQuestion(); } });
+
+function showResult() {
+  runningEl.style.display = 'none'; resultEl.style.display = 'block';
+  const score = answers.reduce((s, a, i) => s + (a === quizSet[i].answer ? 1 : 0), 0);
+  const pct = Math.round(score / quizSet.length * 100);
+  const color = pct >= 80 ? 'var(--good)' : pct >= 50 ? 'var(--amber)' : 'var(--coral)';
+  const msg = pct >= 80 ? '훌륭해요! 핵심 개념을 확실히 잡으셨네요.' :
+              pct >= 50 ? '좋아요. 틀린 부분만 카드로 한 번 더 복습해볼까요?' :
+              '괜찮아요. 개념 정리에서 카드를 펼쳐보고 다시 도전해보세요.';
+  const circ = 2 * Math.PI * 65;
+  resultEl.innerHTML = `
+    <div class="result">
+      <div class="score-ring">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle cx="75" cy="75" r="65" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle cx="75" cy="75" r="65" fill="none" stroke="${color}" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="${circ}"
+            stroke-dashoffset="${circ - circ * pct/100}"
+            transform="rotate(-90 75 75)" style="transition:stroke-dashoffset 0.8s ease"/>
+        </svg>
+        <div class="score-num" style="color:${color}">${pct}%</div>
+      </div>
+      <h3>${score} / ${quizSet.length} 정답</h3>
+      <p>${msg}</p>
+      <button class="btn" id="retry-btn">다시 풀기</button>
+      <button class="btn ghost" id="review-btn">개념 복습하기</button>
+    </div>
+  `;
+  progress.lastQuiz = { score, total: quizSet.length, date: new Date().toISOString() };
+  saveProgress(); renderStats();
+  document.getElementById('retry-btn').addEventListener('click', () => { initQuiz(); });
+  document.getElementById('review-btn').addEventListener('click', () => setMode('concepts'));
+}
+
+/* =============================================================================
+   🚀 INIT
+   ============================================================================= */
+renderStats();
+renderExamples('blueprint', document.getElementById('bp-list'), document.getElementById('bp-filter'), blueprintExamples, 'blueprints');
+renderExamples('cpp', document.getElementById('cpp-list'), document.getElementById('cpp-filter'), cppExamples, 'cpp');
+applyNav();  // 초기 화면 표시
+</script>
+</body>
+</html>
