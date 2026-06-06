@@ -1,4 +1,4 @@
-# UE Codex — 실습 카드 작성 가이드 (Practice Design)
+# UE Archive — 실습 카드 작성 가이드 (Practice Design)
 
 > 블루프린트·C++ 실습 카드의 데이터 구조와 작성 규칙.
 > 실습 카드를 새로 추가하거나 수정할 때 이 파일을 읽으세요.

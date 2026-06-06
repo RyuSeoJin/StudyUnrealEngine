@@ -1,4 +1,4 @@
-# UE Codex — 탭 구조 가이드 (Design Guide: Tab)
+# UE Archive — 탭 구조 가이드 (Design Guide: Tab)
 
 > 탭 구조 정의, 각 탭의 콘텐츠와 작동 규칙.
 > 탭을 추가하거나 탭 내부 구조를 수정할 때 이 파일을 읽으세요.

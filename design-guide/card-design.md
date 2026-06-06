@@ -1,4 +1,4 @@
-# UE Codex — 개념 카드 작성 가이드 (Card Design)
+# UE Archive — 개념 카드 작성 가이드 (Card Design)
 
 > 개념 카드 본문 작성 규칙.  
 > 개념 카드를 새로 추가하거나 수정할 때 이 파일을 읽으세요.

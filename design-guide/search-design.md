@@ -1,4 +1,4 @@
-# UE Codex — 검색 기능 가이드 (Search Design)
+# UE Archive — 검색 기능 가이드 (Search Design)
 
 > 개념 검색 기능의 동작 방식, UI 규칙, 버튼 상태, keywords 배열 규칙을 정리합니다.
 > 검색 기능을 수정하거나 확장할 때 이 파일을 읽으세요.

@@ -1,4 +1,4 @@
-# UE Codex — 스타일 가이드 (Design Guide: Style)
+# UE Archive — 스타일 가이드 (Design Guide: Style)
 
 > CSS 기반값 가이드 — 색상 변수·폰트·여백·배경·애니메이션.  
 > UI 스타일 값을 정하거나 수정할 때 이 파일을 읽으세요.

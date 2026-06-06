@@ -1,4 +1,4 @@
-# UE Codex — HTML 전체 구조 (HTML Structure)
+# UE Archive — HTML 전체 구조 (HTML Structure)
 
 > index.html 한 파일 안에 HTML·CSS·JS가 모두 포함된 단일 파일 아키텍처입니다.
 > 새 기능을 추가하거나 구조를 수정할 때 이 파일을 먼저 읽으세요.

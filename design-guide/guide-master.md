@@ -1,4 +1,4 @@
-# UE Codex — 가이드 마스터 (Guide Master)
+# UE Archive — 가이드 마스터 (Guide Master)
 
 > Claude Code로 작업하기 전에 이 파일을 먼저 읽어 어떤 가이드 파일을 열지 결정하세요.
 

@@ -1,4 +1,4 @@
-# UE Codex — 퀴즈 가이드 (Quiz Design)
+# UE Archive — 퀴즈 가이드 (Quiz Design)
 
 > 퀴즈 UI 컴포넌트 CSS 패턴 및 데이터 구조.
 > 퀴즈를 추가하거나 UI를 수정할 때 이 파일을 읽으세요.

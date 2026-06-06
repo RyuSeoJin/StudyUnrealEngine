@@ -1,4 +1,4 @@
-# UE Codex — 컴포넌트 가이드 (Design Guide: Components)
+# UE Archive — 컴포넌트 가이드 (Design Guide: Components)
 
 > UI 컴포넌트 CSS 패턴 — 네비게이션·카드·버튼·필터칩·BP 에디터·설명블록.  
 > 새 컴포넌트를 만들거나 기존 것을 수정할 때 이 파일을 읽으세요.  
