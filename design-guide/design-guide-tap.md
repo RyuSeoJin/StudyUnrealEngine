@@ -130,3 +130,50 @@ const progress = {
 };
 // localStorage key: 'ue-codex-progress-v2'
 ```
+
+---
+
+## 8. 작업물 탭 (`_subject = 'works'`) — 2025-06 추가
+
+### 구조 개요
+- 상위 탭: 작업물 (`data-subject="works"`)
+- 하위 탭: 별도 `#works-sub-nav` 사용 (기존 `#sub-nav`와 독립)
+  - `data-works-mode="bp"` → 블루프린트 작업물
+  - `data-works-mode="cpp"` → C++ 작업물
+- 상태 변수: `let _worksMode = 'bp';`
+
+### 데이터 배열
+```javascript
+const worksBpItems  = [];  // 블루프린트 작업물
+const worksCppItems = [];  // C++ 작업물
+```
+
+작업물 항목 구조:
+```javascript
+{
+  id:    'w-bp-01',       // 'w-bp-' 또는 'w-cpp-' + 2자리 번호
+  title: '작업물 제목',
+  desc:  '...',           // HTML 문자열
+}
+```
+
+### 뷰 HTML id
+| 하위 탭 | HTML id |
+|---|---|
+| 블루프린트 | `#view-works-bp` |
+| C++ | `#view-works-cpp` |
+
+### 관련 함수
+```javascript
+renderWorks()           // _worksMode에 맞는 목록 렌더 (빈 배열이면 empty state 표시)
+toggleWorkCard(id)      // 카드 열기/닫기
+setWorksMode(m)         // _worksMode 변경 + applyNav()
+```
+
+### applyNav() 처리 방식
+- `_subject === 'works'`일 때 기존 `#sub-nav`는 숨기고 `#works-sub-nav`를 표시
+- `_worksMode` 기준으로 `view-works-bp` 또는 `view-works-cpp` 활성화
+
+### 카드 CSS 클래스
+`.work-card` / `.work-card-head` / `.work-card-title` / `.work-card-arrow` / `.work-card-body`  
+빈 상태: `.works-empty` / `.works-empty-icon`

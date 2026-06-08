@@ -116,7 +116,7 @@
     padding: 0 2px;
     overflow-x: auto;
   }
-  .sub-tab {
+  .sub-tab, .works-sub-tab {
     font-family: var(--sans);
     font-size: 13.5px; font-weight: 600;
     color: var(--text-dim);
@@ -128,9 +128,9 @@
     transition: all 0.18s ease;
     display: flex; align-items: center; gap: 7px;
   }
-  .sub-tab:hover { color: var(--text); }
-  .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .sub-tab .icon { font-size: 15px; }
+  .sub-tab:hover, .works-sub-tab:hover { color: var(--text); }
+  .sub-tab.active, .works-sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .sub-tab .icon, .works-sub-tab .icon { font-size: 15px; }
   .subject-heading {
     font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
     text-transform: uppercase; color: var(--text-faint); margin-top: 22px;
@@ -995,6 +995,46 @@
   }
   footer a { color: var(--text-dim); text-decoration: none; }
   footer a:hover { color: var(--accent); }
+
+  /* ===== Works (작업물) ===== */
+  .works-empty {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 72px 20px;
+    color: var(--text-faint);
+    font-family: var(--sans);
+  }
+  .works-empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .works-empty p { font-size: 14px; margin: 0; }
+
+  .work-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
+  }
+  .work-card:hover { border-color: var(--border-bright); }
+  .work-card-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 22px;
+    cursor: pointer;
+  }
+  .work-card-title { flex: 1; font-size: 16px; font-weight: 600; color: var(--text); }
+  .work-card-meta { font-family: var(--mono); font-size: 11px; color: var(--text-faint); letter-spacing: 1px; }
+  .work-card-arrow {
+    font-size: 13px; color: var(--text-faint);
+    transition: transform 0.2s ease;
+  }
+  .work-card.open .work-card-arrow { transform: rotate(180deg); }
+  .work-card-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.4s ease;
+    padding: 0 22px;
+  }
+  .work-card.open .work-card-body {
+    max-height: 4000px;
+    padding: 0 22px 22px;
+  }
 </style>
 </head>
 <body>
@@ -1015,11 +1055,16 @@
       <button class="nav-tab active" data-subject="dashboard"><span class="icon">🏠</span>대시보드</button>
       <button class="nav-tab" data-subject="bp"><span class="icon">🎨</span>블루프린트</button>
       <button class="nav-tab" data-subject="cpp"><span class="icon">💻</span>C++</button>
+      <button class="nav-tab" data-subject="works"><span class="icon">🗂️</span>작업물</button>
     </div>
     <div class="sub-nav" id="sub-nav" style="display:none;">
       <button class="sub-tab active" data-mode="concepts"><span class="icon">📚</span>개념 정리</button>
       <button class="sub-tab" data-mode="practice"><span class="icon">🛠️</span>실습</button>
       <button class="sub-tab" data-mode="quiz"><span class="icon">✏️</span>퀴즈</button>
+    </div>
+    <div class="sub-nav" id="works-sub-nav" style="display:none;">
+      <button class="works-sub-tab active" data-works-mode="bp"><span class="icon">🎨</span>블루프린트</button>
+      <button class="works-sub-tab" data-works-mode="cpp"><span class="icon">💻</span>C++</button>
     </div>
   </header>
 
@@ -1108,6 +1153,20 @@
     </div>
 
     <div id="quiz-result" style="display:none;"></div>
+  </div>
+
+  <!-- ============ WORKS — 블루프린트 ============ -->
+  <div class="view" id="view-works-bp">
+    <h2 class="view-title">블루프린트 작업물</h2>
+    <p class="view-desc">블루프린트로 만든 작업물을 모아두는 공간입니다.</p>
+    <div id="works-bp-list"></div>
+  </div>
+
+  <!-- ============ WORKS — C++ ============ -->
+  <div class="view" id="view-works-cpp">
+    <h2 class="view-title">C++ 작업물</h2>
+    <p class="view-desc">C++로 만든 작업물을 모아두는 공간입니다.</p>
+    <div id="works-cpp-list"></div>
   </div>
 
   <footer>
@@ -2152,23 +2211,31 @@ function toggleDone(category, id) {
 /* =============================================================================
    🧭 2-LEVEL NAVIGATION — subject(bp|cpp) × mode(concepts|practice|quiz)
    ============================================================================= */
-let _subject = 'dashboard';  // 'dashboard' | 'bp' | 'cpp'
+let _subject = 'dashboard';  // 'dashboard' | 'bp' | 'cpp' | 'works'
 let _mode = 'concepts';      // 'concepts' | 'practice' | 'quiz'
+let _worksMode = 'bp';       // 'bp' | 'cpp'  (작업물 탭 내 하위 탭)
 const subjectCats = { bp: ['공통','블루프린트'], cpp: ['공통','C++'] };
 const subjectLabel = { bp: '블루프린트', cpp: 'C++' };
 const subNav = document.getElementById('sub-nav');
+const worksSubNav = document.getElementById('works-sub-nav');
 
 function applyNav() {
   // 상위 탭 활성
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.subject === _subject));
-  // 하위 네비 표시/숨기기
-  subNav.style.display = (_subject === 'dashboard') ? 'none' : 'flex';
+  // 하위 네비 표시/숨기기 (works는 별도 sub-nav 사용)
+  const isWorks = (_subject === 'works');
+  subNav.style.display = (_subject === 'dashboard' || isWorks) ? 'none' : 'flex';
+  worksSubNav.style.display = isWorks ? 'flex' : 'none';
   subNav.querySelectorAll('.sub-tab').forEach(s => s.classList.toggle('active', s.dataset.mode === _mode));
+  worksSubNav.querySelectorAll('.works-sub-tab').forEach(s => s.classList.toggle('active', s.dataset.worksMode === _worksMode));
   // 모든 view 비활성
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   // 어떤 view를 보여줄지
   if (_subject === 'dashboard') {
     document.getElementById('view-dashboard').classList.add('active');
+  } else if (isWorks) {
+    document.getElementById(_worksMode === 'bp' ? 'view-works-bp' : 'view-works-cpp').classList.add('active');
+    renderWorks();
   } else if (_mode === 'concepts') {
     document.getElementById('view-concepts').classList.add('active');
     document.getElementById('concepts-title').textContent = subjectLabel[_subject] + ' — 개념 정리';
@@ -2199,15 +2266,22 @@ function applyNav() {
 
 function setSubject(s, m) {
   clearConceptSearch();   // 탭 전환 시 검색 초기화
-  _subject = s; _mode = m || 'concepts'; applyNav();
+  _subject = s;
+  if (s === 'works') { _worksMode = _worksMode || 'bp'; }
+  else { _mode = m || 'concepts'; }
+  applyNav();
 }
 function setMode(m) { _mode = m; applyNav(); }
+function setWorksMode(m) { _worksMode = m; applyNav(); }
 
 document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => setSubject(tab.dataset.subject));
 });
 subNav.querySelectorAll('.sub-tab').forEach(st => {
   st.addEventListener('click', () => setMode(st.dataset.mode));
+});
+worksSubNav.querySelectorAll('.works-sub-tab').forEach(st => {
+  st.addEventListener('click', () => setWorksMode(st.dataset.worksMode));
 });
 document.querySelectorAll('.quick-action[data-go-subject]').forEach(qa => {
   qa.addEventListener('click', () => setSubject(qa.dataset.goSubject));
@@ -3085,6 +3159,61 @@ function showResult() {
   saveProgress(); renderStats();
   document.getElementById('retry-btn').addEventListener('click', () => { initQuiz(); });
   document.getElementById('review-btn').addEventListener('click', () => setMode('concepts'));
+}
+
+/* =============================================================================
+   🗂️ WORKS DATA — 작업물을 추가할 때 이 배열에 추가합니다.
+   cat: 'bp' | 'cpp'
+   ============================================================================= */
+const worksBpItems = [
+  // 예시 구조 (실제 작업물이 생기면 아래 형태로 추가하세요)
+  // {
+  //   id: 'w-bp-01',
+  //   title: '작업물 제목',
+  //   desc: '작업물에 대한 설명 HTML',
+  // }
+];
+
+const worksCppItems = [
+  // {
+  //   id: 'w-cpp-01',
+  //   title: '작업물 제목',
+  //   desc: '작업물에 대한 설명 HTML',
+  // }
+];
+
+/* =============================================================================
+   🗂️ WORKS RENDER
+   ============================================================================= */
+function renderWorks() {
+  const isBp = _worksMode === 'bp';
+  const listEl = document.getElementById(isBp ? 'works-bp-list' : 'works-cpp-list');
+  const items = isBp ? worksBpItems : worksCppItems;
+
+  if (items.length === 0) {
+    listEl.innerHTML = `
+      <div class="works-empty">
+        <div class="works-empty-icon">📂</div>
+        <p>아직 등록된 작업물이 없습니다.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => `
+    <div class="work-card" id="wcard-${item.id}">
+      <div class="work-card-head" onclick="toggleWorkCard('${item.id}')">
+        <div class="work-card-title">${item.title}</div>
+        <div class="work-card-arrow">▼</div>
+      </div>
+      <div class="work-card-body">
+        ${item.desc || ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleWorkCard(id) {
+  document.getElementById('wcard-' + id).classList.toggle('open');
 }
 
 /* =============================================================================
