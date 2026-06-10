@@ -1834,6 +1834,105 @@ AMyActor::AMyActor()
 <span class="kw">float</span> GetHealth() <span class="kw">const</span>;      <span class="cm">// "값을 읽기만 하는 함수" → const 필수</span></pre>
       <p><strong>기억법</strong> — "읽기만 하면 const". 변수는 상수화, 인자는 큰 타입을 안전하게 읽기, 멤버 함수는 클래스 상태 보호.</p>
     `
+  },
+  {
+    id: 'c-16', cat: 'C++', tag: 'C++', tagClass: 'tag-2',
+    title: "UE 클래스 구조 — 데이터를 어디에 보관할까",
+    keywords: ['GameMode', 'GameState', 'PlayerController', 'PlayerState', 'GameInstance', 'Subsystem', 'SaveGame', '게임모드', '플레이어 스테이트', '저장', '영속'],
+    body: `
+      <p>UE에는 데이터를 보관하는 클래스가 여러 개 있어서 처음엔 "뭐가 뭔지" 헷갈립니다. 그런데 기준은 딱 하나입니다.</p>
+      <p style="margin:8px 0;padding:10px 12px;background:var(--bg-secondary,rgba(255,255,255,0.04));border-radius:6px;"><strong>"이 데이터, 게임을 껐다 켜도 남아있어야 하나?"</strong><br>이 질문 하나만 던져도 절반은 정리됩니다.</p>
+
+      <p style="margin-top:14px;"><strong>비유로 이해하기 — "보관함의 수명"</strong></p>
+      <p>게임을 하나의 "건물"이라고 생각해봅시다. 아래 클래스들은 전부 데이터를 넣어두는 <strong>보관함</strong>인데, 보관함마다 <strong>언제 내용물이 사라지는지</strong>가 다릅니다. 그게 전부입니다.</p>
+
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left;padding:7px 10px;color:var(--text-secondary);font-weight:500;">클래스</th>
+            <th style="text-align:left;padding:7px 10px;color:var(--text-secondary);font-weight:500;">한 줄 비유</th>
+            <th style="text-align:left;padding:7px 10px;color:var(--text-secondary);font-weight:500;">언제 비워지나</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border-dim,rgba(255,255,255,0.06));">
+            <td style="padding:7px 10px;"><code>AGameMode</code></td>
+            <td style="padding:7px 10px;">"이번 판 규칙판" — 승리 조건, 적 스폰 규칙 등</td>
+            <td style="padding:7px 10px;color:var(--text-secondary);">맵(레벨)이 바뀌면 사라짐</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-dim,rgba(255,255,255,0.06));">
+            <td style="padding:7px 10px;"><code>APlayerController</code></td>
+            <td style="padding:7px 10px;">"내 손에 든 리모컨" — 키보드/마우스 입력 처리</td>
+            <td style="padding:7px 10px;color:var(--text-secondary);">맵이 바뀌면 사라짐 (보통)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-dim,rgba(255,255,255,0.06));">
+            <td style="padding:7px 10px;"><code>APlayerState</code></td>
+            <td style="padding:7px 10px;">"이번 판 점수판" — 체력, 점수 등</td>
+            <td style="padding:7px 10px;color:var(--text-secondary);">맵이 바뀌면 사라짐</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-dim,rgba(255,255,255,0.06));">
+            <td style="padding:7px 10px;"><code>UGameInstance</code></td>
+            <td style="padding:7px 10px;">"게임 켜는 동안 메는 가방" — 맵을 옮겨도 들고 다님</td>
+            <td style="padding:7px 10px;color:var(--text-secondary);">앱을 끄면 사라짐</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-dim,rgba(255,255,255,0.06));">
+            <td style="padding:7px 10px;"><code>UGameInstanceSubsystem</code></td>
+            <td style="padding:7px 10px;">"가방 속 기능별 파우치" — 가방(GameInstance)을 정리정돈용으로 나눈 것</td>
+            <td style="padding:7px 10px;color:var(--text-secondary);">앱을 끄면 사라짐</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 10px;"><code>USaveGame</code></td>
+            <td style="padding:7px 10px;">"금고" — 디스크에 파일로 저장됨</td>
+            <td style="padding:7px 10px;color:var(--text-secondary);">앱을 꺼도 <strong>안 사라짐</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:14px;"><strong>그래서, 어디에 넣지? (질문 3개로 끝내기)</strong></p>
+      <p>위에서 아래로 순서대로 질문하면서, "예"가 나오는 순간 멈추면 됩니다.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:10px 0;">
+        <div style="padding:10px 12px;background:var(--bg-secondary,rgba(255,255,255,0.04));border-radius:6px;">
+          <strong>질문 1.</strong> 앱을 완전히 종료했다 다시 켜도 이 데이터가 남아있어야 하나?<br>
+          <span style="color:var(--text-secondary);">→ 예: <code>USaveGame</code>에 저장 (끝)　|　아니오: 다음 질문으로</span>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg-secondary,rgba(255,255,255,0.04));border-radius:6px;">
+          <strong>질문 2.</strong> 레벨(맵)을 이동해도 계속 들고 있어야 하나?<br>
+          <span style="color:var(--text-secondary);">→ 예: <code>UGameInstance</code> / <code>UGameInstanceSubsystem</code>에 보관　|　아니오: 다음 질문으로</span>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg-secondary,rgba(255,255,255,0.04));border-radius:6px;">
+          <strong>질문 3.</strong> 그냥 "이번 판 한정" 데이터인가? (체력, 점수, 게임 규칙 등)<br>
+          <span style="color:var(--text-secondary);">→ <code>APlayerState</code> / <code>AGameMode</code> 같은, 그 레벨용 클래스에 보관</span>
+        </div>
+      </div>
+
+      <p style="margin-top:8px;">참고로 <strong>UGameInstance와 UGameInstanceSubsystem 중 뭘 쓸지</strong>는 더 간단합니다 — 그냥 항상 <code>UGameInstanceSubsystem</code>을 쓰세요. GameInstance 하나에 모든 코드를 다 때려넣으면 파일이 수천 줄짜리 괴물이 되는데, Subsystem은 "기능별로 자동 분리된 작은 GameInstance"라고 생각하면 됩니다.</p>
+
+      <p style="margin-top:14px;"><strong>RecordTales에 적용하면?</strong></p>
+      <p>RecordTales는 맵 이동이 없는 단일 화면 앱이라서, <code>AGameMode</code> / <code>APlayerState</code>는 거의 쓸 일이 없습니다. 핵심은 아래 두 가지뿐입니다.</p>
+      <pre><span class="cm">// ① 앱이 켜져 있는 동안 "일하는" 시스템 → UGameInstanceSubsystem</span>
+UFocusSubsystem    <span class="cm">// 타이머·스톱워치 진행 상태 (켤 때마다 0부터 시작)</span>
+UArchiveSubsystem  <span class="cm">// 기록 조회, 카테고리 추가/수정/삭제</span>
+UQuestSubsystem    <span class="cm">// 퀘스트 진행 관리</span>
+
+<span class="cm">// ② 앱을 꺼도 보존해야 하는 "내 데이터" → USaveGame</span>
+URecordTalesSaveGame
+  ├── FTimerConfig           <span class="cm">// 마지막에 설정한 타이머 값</span>
+  ├── TArray&lt;FSessionRecord&gt; <span class="cm">// 지금까지의 집중 기록 전체</span>
+  ├── TArray&lt;FCategoryDef&gt;   <span class="cm">// 내가 만든 카테고리 목록</span>
+  ├── TArray&lt;FQuestInstance&gt; <span class="cm">// 퀘스트 진행 상황</span>
+  ├── int32  Gold            <span class="cm">// 골드 (추후 기능)</span>
+  └── int32  PlayerLevel     <span class="cm">// 레벨 (추후 기능)</span>
+
+<span class="cm">// ③ 절대 저장하면 안 되는 것 — 앱을 켤 때마다 새로 계산/초기화</span>
+FTimerRuntimeState  <span class="cm">// "지금 몇 분 남았나" 같은 진행 중 상태</span>
+FStopwatchState     <span class="cm">// "지금까지 몇 분 흘렀나"</span>
+FArchiveQueryResult <span class="cm">// 달력 화면 등을 그릴 때마다 즉석에서 계산하는 결과</span></pre>
+      <p>③을 저장해버리면, 예를 들어 "타이머 12분 남음" 상태로 저장된 채 다음날 앱을 켰을 때 "어제의 12분"이 그대로 남아있는 이상한 상황이 됩니다. 그래서 <strong>"진행 중" 데이터는 SaveGame에 넣지 않고</strong>, 앱을 켤 때마다 깨끗하게 다시 시작합니다.</p>
+
+      <p style="margin-top:10px;"><strong>실제 코드에서 접근하는 법</strong> — Subsystem은 어디서든 이렇게 꺼내 쓸 수 있습니다.</p>
+      <pre><span class="cm">// 어느 위젯/액터에서든 이렇게 한 줄로 접근 가능</span>
+UFocusSubsystem* Focus = GetGameInstance()->GetSubsystem&lt;UFocusSubsystem&gt;();</pre>
+    `
   }
 ];
 
